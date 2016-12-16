@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Root signature="{90D101C8-80C7-48D4-9055-2E451B9BCD75}" version="1140" key="{5E7D4EE7-898E-4C57-A226-0A3C714CE138}" type="Tested Applications" typeId="{90D101C8-80C7-48D4-9055-2E451B9BCD75}">
+	<config nodeName="TestedApps" />
+	<testData />
+	<data />
+	<children>
+		<child key="{5382BEA6-FEAB-49BC-AC6C-39F9E83981A5}" type="Tested Application" typeId="{FD30A383-63C2-4C25-948C-2595C0F81320}">
+			<config nodeName="http___demo_plsclear_com_" autorunOnRecording="False" enabled="True" count="1" useFeaturedRuntimeObject="True" userChangeName="False">
+				<runModeParams activeRunMode="Web">
+					<param name="Web" parameters="" workFolder="" browserType="Internet Explorer" browserVersion="11.0 (32-bit)" pageAddress="http://demo.plsclear.com/" browserArguments="" />
+				</runModeParams>
+			</config>
+			<testData />
+			<data />
+		</child>
+		<child key="{8A6B1523-FD04-475B-B933-27E615A1DB7D}" type="Tested Application" typeId="{FD30A383-63C2-4C25-948C-2595C0F81320}">
+			<config nodeName="http___demo_plsclear_com_1" autorunOnRecording="False" enabled="True" count="1" useFeaturedRuntimeObject="True" userChangeName="False">
+				<runModeParams activeRunMode="Web">
+					<param name="Web" parameters="" workFolder="" browserType="Internet Explorer" browserVersion="11.0 (64-bit)" pageAddress="http://demo.plsclear.com/" browserArguments="" />
+				</runModeParams>
+			</config>
+			<testData />
+			<data />
+		</child>
+		<child key="{B38BEB14-1882-4AF4-A668-3129C4F91A78}" type="Tested Application" typeId="{FD30A383-63C2-4C25-948C-2595C0F81320}">
+			<config nodeName="chrome" autorunOnRecording="False" enabled="True" count="1" useFeaturedRuntimeObject="True" userChangeName="False">
+				<runModeParams activeRunMode="Simple">
+					<param name="RunAs" parameters="" workFolder="" userName="" password="" domain="" />
+					<param name="Profile" parameters="" workFolder="" />
+					<param name="Debug" parameters="" workFolder="" />
+					<param name="Simple" fileName="chrome.exe" filePath="C:\Program Files (x86)\Google\Chrome\Application\" parameters="" workFolder="" />
+				</runModeParams>
+			</config>
+			<testData />
+			<data />
+		</child>
+	</children>
+	<folders />
+</Root>

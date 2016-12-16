@@ -1,0 +1,50 @@
+﻿'USEUNIT LIBRARY
+
+Sub LoginTest
+  browserVal = "chrome"
+  urlVal = "http://demo.plsclear.com/"
+'  usernameVal = "cleartester1"
+'  passwordVal = "password"
+  
+  usernameVal = "v2plsrequestor2@gmail.com"
+  passwordVal = "Password3"
+  
+  searchtypeVal =  "Title Search"
+  searchVal = "The Hungry Tide"
+  resultVal = "The Hungry Tide"
+  textextractVal = "9"
+  poemVal = "2"
+  illustrationVal = "4"
+  tableVal = "5"
+  articleVal1 = "2"
+  contentsourceVal1 = "Paper"
+  issuedateVal1 = "04/12/2016"
+  issuenumberVal1 = "7"
+  issueurlVal1 = "www.fpl.com"
+  articletitleVal1 = "article"
+  no_of_wordsVal1 = "15"
+  page_noVal1 = "10-15"
+  identifierVal1 = "Jade"
+  isthisacompletearticleVal1 = "Yes"
+  authorval1 = "Socrates"
+  areyoutheauthorofthisworkVal1 = "I am the author"
+  areyoutheauthorofthisworkVal1 = "I am NOT the author"
+  willyoubealertingthetextVal1 = "True"
+  
+
+  Call Launch_PLSclear(browserVal,urlVal)
+  Call Login(browserVal,usernameVal,passwordVal)
+  Call SearchTitle(browserVal,searchtypeVal,searchVal)
+  Call SelectSearchResult(browserVal,resultVal)
+  Call SelectContent(browserVal,textextractVal,poemVal,illustrationVal,tableVal,articleVal)
+
+ 
+    Set browser = Sys.Find("ProcessName",browserVal,5)
+    Set page = browser.Find(Array("URL","Visible"),Array("*pls*",True),10)
+    
+    
+   
+End Sub
+
+
+

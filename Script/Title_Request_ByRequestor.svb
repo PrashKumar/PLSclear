@@ -1,0 +1,32 @@
+﻿'USEUNIT LIBRARY
+
+Sub Title_Request_ByRequestor
+  browserVal = "chrome"
+  urlVal = "https://demo.plsclear.com/"
+  usernameVal = "v2plsrequestor2@gmail.com"
+  passwordVal = "Password3"
+  
+  
+'  Call Launch_PLSclear(browserVal,urlVal)
+'  Call Login(browserVal,usernameVal,passwordVal)
+'  Call ActionOnAlertDialog(browserVal,"Yes")
+'  Call SearchTitle(browserVal,searchtypeVal,searchVal)
+'  Call SelectSearchResult(browserVal,resultVal)
+'  Call SelectContent(browserVal,textextractVal,poemVal,illustrationVal,tableVal,articleVal)
+'  '#########
+  
+  '# Function DetailsOfContent
+  
+  ''############
+  Call SelectPlannedUsage(browserVal,"Web-based Content","App")
+  Call SelectPlannedUsage(browserVal,"Original Text with a few quotes","Paperback")
+  Call SelectPlannedUsage(browserVal,"Original Text with a few quotes","Hardback")
+  Call SelectPlannedUsage(browserVal,"","Webpages")
+  Call SelectPlannedUsage(browserVal,"Textbook","Paperback")
+  Call SelectPlannedUsage(browserVal,usagetypeVal,"Photocopying or Scanning for Commercial/non-educational use")
+
+
+  End Sub
+
+
+

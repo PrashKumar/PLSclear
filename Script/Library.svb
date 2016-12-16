@@ -1,0 +1,830 @@
+﻿
+
+''####################################################### Function to launch PLSclear on browser ##########################
+
+  Function Launch_PLSclear(browserVal,urlVal)
+  Dim browser
+  Dim page
+  Set browser = Sys.Find("ProcessName",browserVal,5)
+  If browser.Exists then
+    Set page = browser.Find("URL","*pls*",10)
+    If page.Exists = False then
+      Call browsers.Item(browserVal).Run(urlVal)
+      Sys.browser(browserVal).page(urlVal).Wait
+      Set browser = Sys.Find("ProcessName",browserVal,5)
+    Else
+      Log.Message("PLSclear was already open")
+    End If
+  Else
+    Call browsers.Item(browserVal).Run(urlVal)
+    Sys.browser(browserVal).page(urlVal).Wait
+    Set browser = Sys.Find("ProcessName",browserVal,5)
+    Set page = browser.Find("URL","*pls*",10)
+    Log.Message(urlVal &" was launched on "& browserVal &" browser")
+  End If
+  End Function
+  
+  ''####################### Function to login ######################################
+  
+  Function Login(browserVal,usernameVal,passwordVal)
+    Set browser = Sys.Find("ProcessName",browserVal,5)
+    Set page = browser.Find("URL","*pls*",10)
+    Set logOffLnk = page.Find(Array("idStr","VisibleOnScreen"),Array("ctl00_MenuLogin_LoginView1_LoginStatus1",True),20)
+    If logOffLnk.Exists then
+      Call logOffLnk.Click
+      Log.Message("Application was in Logged In status")
+      Delay(2000)
+    End If
+    Set usernameTxtbox = page.FindChild(Array("idStr","VisibleOnScreen"),Array("ctl00_txtUsername",True),20)
+    If usernameTxtbox.Exists then
+      Set passwordTxtbox = page.FindChild(Array("idStr","VisibleOnScreen"),Array("ctl00_txtPassword",True),20)
+      Set signinBtn = page.FindChild(Array("idStr","VisibleOnScreen"),Array("ctl00_btnLogin",True),20)
+      Call usernameTxtbox.SetText(usernameVal)
+      Call passwordTxtbox.SetText(passwordVal)
+      Call signinBtn.Click
+      Delay(1000)
+      Call page.Refresh
+      Set usernameTxtbox = page.Find(Array("idStr","VisibleOnScreen"),Array("ctl00_txtUsername",True),20)
+      If usernameTxtbox.Exists then
+        Log.Error("Sign in Unsuccessful")
+        Call runner.stop
+      Else
+        Log.Message("Sign in was Successful")
+      End If
+    Else
+      Log.Message("Login task was skipped")
+    End If
+  End Function
+  
+  ''##################### Alert dialog: Click on 'Yes' or 'No' ######################
+  
+  Function ActionOnAlertDialog(browserVal,alertactionVal)
+  Set browser = Sys.Find("ProcessName",browserVal,5)
+   Set page = browser.Find(Array("URL","Visible"),Array("*pls*",True),10)
+   Set alertdialog_o = page.FindChild(Array("className","VisibleOnScreen"),Array("ui-dialog ui-widget ui-widget-content ui-corner-all ui-draggable ui-resizable",True),5)
+   If alertdialog_o.Exists then
+     If alertactionVal = "Yes" then
+       Set yesbutton_o = alertdialog_o.Find(Array("ObjectType","contentText"),Array("Button","Yes"),10)
+       Call yesbutton_o.Click
+       Log.Message("Alert dialog appeared. 'Yes' button clicked")
+     ElseIf alertactionVal = "No" then
+       Set nobutton_o = alertdialog_o.Find(Array("ObjectType","contentText"),Array("Button","No"),10)
+        Log.Message("Alert dialog appeared. 'No' button clicked")
+     Else
+        Log.Error("Alert dialog action buttons not found. Check parameters provided and properties of the buttons")
+     End If
+   End If
+   End Function
+  ''###################### Function to Search Before Login ###########################
+  
+  Function SearchTitle(browserVal,searchtypeVal,searchVal)
+    Set browser = Sys.Find("ProcessName",browserVal,5)
+    Set page = browser.Find("URL","*pls*",10)
+    Set makeapermissionsrequestlnk = page.FindChild(Array("ObjectType","contentText","VisibleOnScreen"),Array("Link","Make a permissions request",True),20)
+    If makeapermissionsrequestlnk.Exists Then 
+      Call makeapermissionsrequestlnk.Click
+    End If
+    Delay 1000
+    Set searchbarcontainer = page.FindChild(Array("idStr","VisibleOnScreen"),Array("searchBarContainer",True),20)
+    If searchbarcontainer.Exists = False Then
+      Log.Warning("SearchBar container Not found")
+    ElseIf searchbarcontainer.Exists Then
+      Set searchTypeSelector = searchbarcontainer.Find("className","searchTypeSelector",10)
+      Call searchTypeSelector.ClickItem(searchtypeVal)
+      Call searchbarcontainer.Find("idStr","keywords",5).SetText(searchVal)
+      Log.Message("Search made for: "& searchVal)
+      Call searchbarcontainer.Find("idStr","searchButton",5).Click
+      Do 
+        Call Delay(100)
+        Call page.Refresh
+        Set pageloading_img = page.FindChild("idStr","load150",20)
+      Loop Until Pageloading_img.Exists = True
+    End If
+  End Function
+  
+  ''#####################  Function to Select the title from the Search Results ########
+  
+  Function SelectSearchResult(browserVal,resultVal)
+    Set browser = Sys.Find("ProcessName",browserVal,5)
+    Set page = browser.Find("URL","*pls*",10)
+    Set resultstable = page.Find(Array("ObjectIdentifier","ObjectType"),Array("resultsall","Table"),25)
+    For i = 0 to resultstable.ChildCount-1 
+      If resultstable.Find(Array("ObjectType","contentText"),Array("Cell",resultVal),2).Exists then
+        cellx = resultstable.FindAllChildren(Array("ObjectType","contentText"),Array("Cell",resultVal),2)
+        If cellx(i).contentText = resultVal then
+          selectedformattype = resultstable.FindChild(Array("ObjectType","RowIndex","ColumnIndex"),Array("Cell",cellx(i).RowIndex,"5"),2).contentText
+          Log.Message(cellx(i).contentText &" was clicked for selection")
+          cellx(i).Click
+    Exit For
+        ElseIf cellx(i).contentText <> resultVal And i = resultstable.ChildCount-1 then
+          Log.Error(resultVal &" not found")
+        End If
+      Else
+        Log.Error(resultVal &" not found in the Results. Execution stopped")
+        Call Runner.Stop
+      End If
+    Next
+  End Function
+  
+  ''###################### Function to set parameters on 'Select Content' page
+  
+  Function SelectContent(browserVal,textextractVal,poemVal,illustrationVal,tableVal,articleVal)
+    Set browser = Sys.Find("ProcessName",browserVal,5)
+    Set page = browser.Find(Array("URL","Visible"),Array("*pls*",True),10)
+    Set step1panel = page.FindChild(Array("idStr","VisibleOnScreen"),Array("step-1",True),30)
+    Call step1panel.FindChild(Array("idStr","VisibleOnScreen"),Array("prose_counter",True),30).SetText(textextractVal)
+    Call step1panel.FindChild(Array("idStr","VisibleOnScreen"),Array("poetry_counter",True),30).SetText(poemVal)
+    Call step1panel.FindChild(Array("idStr","VisibleOnScreen"),Array("illustration_counter",True),30).SetText(illustrationVal)
+    Call step1panel.FindChild(Array("idStr","VisibleOnScreen"),Array("table_counter",True),30).SetText(tableVal)
+    If step1panel.FindChild(Array("idStr","VisibleOnScreen"),Array("article_counter",True),30).Exists then
+      Call step1panel.FindChild(Array("idStr","VisibleOnScreen"),Array("article_counter",True),30).SetText(articleVal)
+    ElseIf step1panel.FindChild(Array("idStr","VisibleOnScreen"),Array("chapter_counter",True),30).Exists then
+      Call step1panel.FindChild(Array("idStr","VisibleOnScreen"),Array("chapter_counter",True),30).SetText(articleVal)
+    End If
+    Call page.FindChild("className","buttonNext",30).Click
+  End Function
+  
+  ''######################## Function to set 'Details of Content' 
+  Function DetailsOfContent()
+    searchtypeVal =  "Title Search"
+    searchVal = "STUDIO POTTERY"
+    resultVal = "STUDIO POTTERY"
+    textextractVal = "2"
+    poemVal = "1"
+    illustrationVal = "1"
+    tableVal = "1"
+    articleVal = "1"
+    ''### Text parameters
+    contentsourceVal1 = "Paper"
+    issuedateVal1 = "04/12/2016"
+    issuenumberVal1 = "7"
+    issueurlVal1 = "www.fpl.com"
+    articletitleVal1 = "article"
+    noofwordsVal1 = "15"
+    pagenoVal1 = "1"
+    identifierVal1 = "Jade"
+    isthisacompletearticleVal1 = "Yes"
+    authorval1 = "Socrates"
+    areyoutheauthorofthisworkVal1 = "I am the author"
+    additionalinformationVal1 = "I am not commercial user"
+    willyoubealertingthetextVal1 = "True"
+    fulldetailsaboutheadaptionVal1 = "This is automation test"
+  
+    ''### Poem parameters
+    contentsourceVal1 = "Paper"
+    issuedateVal1 = "04/12/2016"
+    issuenumberVal1 = "7"
+    issueurlVal1 = "www.fpl.com"
+    articletitleVal1 = "article"
+    nameofthepoemVal1 = "Hello world"
+    nameofpoetVal1 = "John"
+    areyoutheauthorofthisworkVal1 = "I am the author"
+    identifierVal1 = "Jade"
+    istheextractacompletepoemVal1 = "Yes"
+    nooflinesVal1 = "21"
+    additionalinformationVal1 = "I am not commercial user"
+    willyoubealertingthetextVal1 = "True"
+    fulldetailsaboutheadaptionVal1 = "This is automation test"
+  
+    ''#### Illustration parameters
+    contentsourceVal1 = "Paper"
+    issuedateVal1 = "04/12/2016"
+    issuenumberVal1 = "7"
+    issueurlVal1 = "www.fpl.com"
+    articletitleVal1 = "article"
+    figurenumber_titleVal1 = "104.5"
+    nameofillustratorVal1 = "Peter"
+    areyoutheauthorofthisworkVal1 = "I am the author"
+    pagenumberVal1 = "78"
+    positiononpageVal1 = "middle"
+    additionalinformationVal1 = "I am not commercial user"
+    reproductioncolourVal1 = "Full Colour"
+    reproductionsizeVal1 = "Half page"
+    positioningVal1 = "cover or home page"
+    willyoubealertingtheimageortextVal1 = "True"
+    willitbecroppedVal1 = "Yes"
+    fulldetailsofhowitwillbealteredVal1 = "cropped to to 75% of actual image"
+  
+    '###### Table parameters
+    contentsourceVal1 = "Paper"
+    issuedateVal1 = "04/12/2016"
+    issuenumberVal1 = "7"
+    issueurlVal1 = "www.fpl.com"
+    articletitleVal1 = "article"
+    figurenumber_titleVal1 = "104.5"
+    areyoutheauthorofthisworkVal1 = "I am NOT the author"
+    tableVal1 = "fig 1234"
+    pagenumberVal1 = "78"
+    additionalinformationVal1 = "I am not commercial user"
+    willyoubealertingtheimageortextVal1 = "True"
+    willitbecroppedVal1 = "Yes"
+    fulldetailsofhowitwillbealteredVal1 = "cropped to to 75% of actual image"
+  
+    ''###### Article parameters
+    yearofpublicationVal1 = "1968"
+    volumenumberVal1 = "1234"
+    issuenumberVal1 = "7"
+    articletitleVal1 = "article"
+    articleauthorVal1 = "John"
+    areyoutheauthorofthisworkVal1 = "I am NOT the author"
+    additionalinformationVal1 = "I am not commercial user"
+    pagenumberVal1 = "78"
+    numberofwords_articleVal1 = "25"
+    willyoubealertingthetextVal1 = "True"
+    fulldetailsaboutheadaptionVal1 = "This is automation test"
+  
+    ''###### Chapter parameters
+    chapternameVal1 = "Science Good"
+    chapternumberVal1 = "3"
+    numberofwordsVal1 = "150"
+    pagerangeVal1 = "21-50"
+    areyoutheauthorofthisworkVal1 = "I am NOT the author"
+    additionalinformationVal1 = "I am not commercial user"
+    willyoubealertingthetextVal1 = "True"
+    fulldetailsaboutheadaptionVal1 = "This is automation test"
+  
+    ''###### End of Parameters
+  
+    willyoubealertingtheimageortextVal1 = "True"
+    willitbecroppedVal1 = "No"
+    fulldetailsabouttheadaptionVal1  = "I am automating it"
+  
+    Set browser = Sys.Find("ProcessName",browserVal,5)
+    Set page = browser.Find(Array("URL","Visible"),Array("*pls*",True),10)
+    Set step2panel = page.FindChild(Array("idStr","VisibleOnScreen"),Array("step-2",True),30)
+    Set extractsAccordion = step2panel.Find("idStr","extractsAccordion",10)
+    For i = 0 to extractsAccordion.wItemCount-1
+    '# Expands the node
+    Call extractsAccordion.ExpandItem(i)
+    Call page.Refresh
+    Set resourcepanel_o = extractsAccordion.FindChild(Array("ObjectIdentifier","innerHTML"),Array("resource*","*accordion-content-active*"),10)
+    ''############## TEXT   TEXT   TEXT   TEXT #############################################
+       ''## Below If statement helps to choose fields based on formattype of the title selected and is taken from search results table
+     If InStr(extractsAccordion.FindChild("className","*ui-state-active*",10).innerHTML,"extract=""prose""") <> 0 Then
+        If selectedformattype = "Serial" Or selectedformattype = "Webdomain" then
+          '# Content Source
+          Set contentsource =  resourcepanel_o.FindChild(Array("ObjectType","nextSibling.innerText","Visible"),Array("RadioButton",contentsourceVal1,True),10)
+          If contentsource.Exists then
+            contentsource.scrollIntoView(1)
+            contentsource.Click
+          End If
+          '# issue date
+          Set issuedate =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_issue_date",True),10)
+          If issuedate.Exists then
+            issuedate.scrollIntoView(1)
+            issuedate.SetText(issuedateVal1)
+          End If
+          '# issue Number
+          Set issuenumber =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_issue_number",True),10)
+          If issuenumber.Exists then
+            issuenumber.scrollIntoView(1)
+            issuenumber.SetText(issuenumberVal1)
+          End If
+          '# issue URL
+          Set issueURL =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_issue_url",True),10)
+          If issueURL.Exists Then
+            issueURL.scrollIntoView(1)
+            issueURL.SetText(issueurlVal1)
+          End If
+          '# article title
+          Set articletitle =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_article_title",True),10)
+          If articletitle.Exists Then
+            articletitle.scrollIntoView(1)
+            articletitle.SetText(articletitleVal1)
+          End If
+         End If
+         '#### Below fields are common for all format types of Text
+          '# No. of words in extract
+          Set noofwords =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_no_of_words",True),10)
+          If noofwords.Exists then
+            noofwords.scrollIntoView(1)
+            noofwords.Keys(noofwordsVal1)
+          End If
+          '# page Range
+          Set pageno =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_page_no",True),10)
+          If pageno.Exists then
+            pageno.scrollIntoView(1)
+            pageno.Keys(pagenoVal1)
+          End if
+          '# identifier/ first few words
+          Set identifier = resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_identifier",True),10)
+          If identifier.Exists then
+             identifier.scrollIntoView(1)
+            identifier.Keys("^a[Del]"&identifierVal1)
+          End If
+          '# Is this a complete article
+          Set isthisacompletearticle = resourcepanel_o.FindChild(Array("ObjectType","nextSibling.innerText","Visible"),Array("RadioButton",isthisacompletearticleVal1,True),10)
+          If isthisacompletearticle.Exists Then
+            isthisacompletearticle.scrollIntoView(1)
+            isthisacompletearticle.Click
+          End If
+          '# Author
+          Set author = resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_author",True),10)
+          If author.Exists then
+            author.scrollIntoView(1)
+            author.SetText(authorVal1)
+          End If
+           '# Are you the author of this work
+          Set areyoutheauthorofthiswork =  resourcepanel_o.FindChild(Array("ObjectType","nextSibling.innerText","Visible"),Array("RadioButton",areyoutheauthorofthisworkVal1,True),10)
+          If areyoutheauthorofthiswork.Exists then
+            areyoutheauthorofthiswork.scrollIntoView(1)
+            areyoutheauthorofthiswork.Click
+          End If
+          ''## additional information
+          Set additionalinformation = resourcepanel_o.FindChild(Array("idStr","ObjectType","Visible"),Array("*_other","Textarea",True),10)
+          If additionalinformation.Exists then
+            additionalinformation.scrollIntoView(1)
+            additionalinformation.Keys(additionalinformationVal1)
+          End If 
+          '# will you be alerting the text?
+          Set willyoubealertingthetext =  resourcepanel_o.FindChild(Array("ObjectType","nextSibling.textContent","Visible"),Array("Checkbox","will you be altering the text?",True),10)
+          If willyoubealertingthetext.Exists then
+            willyoubealertingthetext.scrollIntoView(1)
+            willyoubealertingthetext.ClickChecked(willyoubealertingthetextVal1)
+            If willyoubealertingthetextVal1 = "True" then
+            '# full details about the adaption
+              Call resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_adaption_detail",True),10).Keys(fulldetailsabouttheadaptionVal1)   
+            End If
+          End If
+      ''############## POEM    POEM   POEM   POEM #############################################
+       ElseIf InStr(extractsAccordion.FindChild("className","*ui-state-active*",10).innerHTML,"extract=""poetry""") <> 0 THEN
+      Set resourcepanel_o = extractsAccordion.FindChild(Array("ObjectIdentifier","innerHTML"),Array("resource*","*accordion-content-active*"),10)
+        If selectedformattype = "Serial" Or selectedformattype = "Webdomain" then
+          '# Content Source
+          Set contentsource =  resourcepanel_o.FindChild(Array("ObjectType","nextSibling.innerText","Visible"),Array("RadioButton",contentsourceVal1,True),10)
+          If contentsource.Exists then
+            contentsource.scrollIntoView(1)
+            contentsource.Click
+          End If
+          '# issue date
+          Set issuedate =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_issue_date",True),10)
+          If issuedate.Exists then
+            issuedate.scrollIntoView(1)
+            issuedate.SetText(issuedateVal1)
+          End If
+          '# issue Number
+          Set issuenumber =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_issue_number",True),10)
+          If issuenumber.Exists then
+            issuenumber.scrollIntoView(1)
+            issuenumber.SetText(issuenumberVal1)
+          End If
+          '# issue URL
+          Set issueURL =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_issue_url",True),10)
+          If issueURL.Exists Then
+            issueURL.scrollIntoView(1)
+            issueURL.SetText(issueurlVal1)
+          End If
+          '# article title
+          Set articletitle =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_article_title",True),10)
+          If articletitle.Exists Then
+            articletitle.scrollIntoView(1)
+            articletitle.SetText(articletitleVal1)
+          End If
+        End If
+          '# Name of the poem
+          Set nameofthepoem =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_poem_name",True),10)
+          If nameofthepoem.Exists Then
+            nameofthepoem.scrollIntoView(1)
+            nameofthepoem.SetText(nameofthepoemVal1)
+          End If
+          '# Name of Poet
+          Set nameofpoet =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_poet_name",True),10)
+          If nameofpoet.Exists Then
+            nameofpoet.scrollIntoView(1)
+            nameofpoet.SetText(nameofpoetVal1)
+          End If
+          '# Are you the author of this work
+          Set areyoutheauthorofthiswork =  resourcepanel_o.FindChild(Array("ObjectType","nextSibling.innerText","Visible"),Array("RadioButton",areyoutheauthorofthisworkVal1,True),10)
+          If areyoutheauthorofthiswork.Exists then
+            areyoutheauthorofthiswork.scrollIntoView(1)
+            areyoutheauthorofthiswork.Click
+          End If
+          '# identifier/ first few words
+          Set identifier =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_identifier",True),10)
+          If identifier.Exists then
+            identifier.scrollIntoView(1)
+            identifier.Keys("^a[Del]"&identifierVal1)
+          End If
+          '# Is the extract a complete poem
+          Set istheextractacompletepoem = resourcepanel_o.FindChild(Array("ObjectType","nextSibling.innerText","Visible"),Array("RadioButton",istheextractacompletepoemVal1,True),10)
+          If istheextractacompletepoem.Exists Then
+            istheextractacompletepoem.scrollIntoView(1)
+            istheextractacompletepoem.Click
+          End If
+          '# No. of lines in the extract
+          Set nooflines =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_no_of_lines",True),10)
+          If nooflines.Exists then
+            nooflines.scrollIntoView(1)
+            nooflines.SetText(nooflinesVal1)
+          End If
+          ''## additional information
+          Set additionalinformation = resourcepanel_o.FindChild(Array("idStr","ObjectType","Visible"),Array("*_other","Textarea",True),10)
+          If additionalinformation.Exists then
+            additionalinformation.scrollIntoView(1)
+            additionalinformation.Keys(additionalinformationVal1)
+          End If 
+          '# will you be alerting the text?
+          Set willyoubealertingthetext =  resourcepanel_o.FindChild(Array("ObjectType","nextSibling.textContent","Visible"),Array("Checkbox","will you be altering the text?",True),10)
+          If willyoubealertingthetext.Exists then
+            willyoubealertingthetext.scrollIntoView(1)
+            willyoubealertingthetext.ClickChecked(willyoubealertingthetextVal1)
+            If willyoubealertingthetextVal1 = "True" then
+            '# full details about the adaption
+              Call resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_adaption_detail",True),10).Keys(fulldetailsabouttheadaptionVal1)   
+            End If
+          End If
+         
+       ''############## ILLUSTRATION  ILLUSTRATION  ILLUSTRATION  ##############################
+       ElseIf InStr(extractsAccordion.FindChild("className","*ui-state-active*",10).innerHTML,"extract=""illustration""") <> 0 THEN
+       Set resourcepanel_o = extractsAccordion.FindChild(Array("ObjectIdentifier","innerHTML"),Array("resource*","*accordion-content-active*"),10)
+        If selectedformattype = "Serial" Or selectedformattype = "Webdomain" then
+          '# Content Source
+          Set contentsource =  resourcepanel_o.FindChild(Array("ObjectType","nextSibling.innerText","Visible"),Array("RadioButton",contentsourceVal1,True),10)
+          If contentsource.Exists then
+            contentsource.scrollIntoView(1)
+            contentsource.Click
+          End If
+          '# issue date
+          Set issuedate =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_issue_date",True),10)
+          If issuedate.Exists then
+            issuedate.scrollIntoView(1)
+            issuedate.SetText(issuedateVal1)
+          End If
+          '# issue Number
+          Set issuenumber =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_issue_number",True),10)
+          If issuenumber.Exists then
+            issuenumber.scrollIntoView(1)
+            issuenumber.SetText(issuenumberVal1)
+          End If
+          '# issue URL
+          Set issueURL =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_issue_url",True),10)
+          If issueURL.Exists Then
+            issueURL.scrollIntoView(1)
+            issueURL.SetText(issueurlVal1)
+          End If
+          '# article title
+          Set articletitle =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_article_title",True),10)
+          If articletitle.Exists Then
+            contentsource.scrollIntoView(1)
+            articletitle.SetText(articletitleVal1)
+          End If
+        End If
+          '# Figure number & title/caption
+          Set figurenumber_title =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_illustration_name",True),10)
+          If figurenumber_title.Exists Then
+            figurenumber_title.scrollIntoView(1)
+            figurenumber_title.SetText(figurenumber_titleVal1)
+          End If
+          '# Name of Illustrator
+          Set nameofillustrator =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_illustrator_name",True),10)
+          If nameofillustrator.Exists Then
+            nameofillustrator.scrollIntoView(1)
+            nameofillustrator.SetText(nameofillustratorVal1)
+          End If
+          '# Are you the author of this work
+          Set areyoutheauthorofthiswork =  resourcepanel_o.FindChild(Array("ObjectType","nextSibling.innerText","Visible"),Array("RadioButton",areyoutheauthorofthisworkVal1,True),10)
+          If areyoutheauthorofthiswork.Exists then
+            areyoutheauthorofthiswork.scrollIntoView(1)
+            areyoutheauthorofthiswork.Click
+          End If
+          '# page number
+          Set pageno =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_page_no",True),10)
+          If pageno.Exists then
+            pageno.scrollIntoView(1)
+            pageno.SetText(pagenumberVal1)
+          End If
+           '# Position on page
+          Set positiononpage =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_pos_on_pg",True),10)
+          If positiononpage.Exists Then
+            positiononpage.scrollIntoView(1)
+            positiononpage.SetText(positiononpageVal1)
+          End If
+          ''## additional information
+          Set additionalinformation = resourcepanel_o.FindChild(Array("idStr","ObjectType","Visible"),Array("*_other","Textarea",True),10)
+          If additionalinformation.Exists then
+            additionalinformation.scrollIntoView(1)
+            additionalinformation.Keys(additionalinformationVal1)
+          End If 
+          '# reproduction colour
+          Set reproductioncolour =  resourcepanel_o.FindChild(Array("ObjectType","nextSibling.innerText","Visible"),Array("RadioButton",reproductioncolourVal1,True),10)
+          If reproductioncolour.Exists then
+             reproductioncolour.scrollIntoView(1)
+            reproductioncolour.Click
+          End If  
+          '# reproduction size
+          Set reproductionsize =  resourcepanel_o.FindChild(Array("ObjectType","nextSibling.innerText","Visible"),Array("RadioButton",reproductionsizeVal1,True),10)
+          If reproductionsize.Exists then
+            reproductionsize.scrollIntoView(1)
+            reproductionsize.Click
+          End If  
+          '# positioning
+          Set positioning =  extractsAccordion.FindChild(Array("ObjectType","nextSibling.innerText","Visible"),Array("RadioButton",positioningVal1,True),10)
+          If positioning.Exists then
+            positioning.scrollIntoView(1)
+            positioning.Click
+          End If  
+          '# will you be alerting the image or text?
+          Set willyoubealertingtheimageortext =  resourcepanel_o.FindChild(Array("ObjectType","nextSibling.textContent","Visible"),Array("Checkbox","will you be altering the image or text?",True),10)
+          If willyoubealertingtheimageortext.Exists then
+            willyoubealertingtheimageortext.scrollIntoView(0)
+            willyoubealertingtheimageortext.ClickChecked(willyoubealertingtheimageortextVal1)
+            If willyoubealertingtheimageortextVal1 = "True" then
+              ''# will it be cropped
+              If willitbecroppedVal1 = "Yes" then
+                Call resourcepanel_o.FindChild(Array("ObjectType","ObjectIdentifier","Visible"),Array("RadioButton","repo_size",True),10).scrollIntoView(1)
+                Call resourcepanel_o.FindChild(Array("ObjectType","ObjectIdentifier","Visible"),Array("RadioButton","repo_size",True),10).scrollIntoView(1).ClickButton
+              ElseIf willitbecroppedVal1 = "No" then
+                Call resourcepanel_o.FindChild(Array("ObjectType","ObjectIdentifier","Visible"),Array("RadioButton","repo_size_2",True),10).scrollIntoView(1)
+                Call resourcepanel_o.FindChild(Array("ObjectType","ObjectIdentifier","Visible"),Array("RadioButton","repo_size_2",True),10).ClickButton
+              End If  
+              ''# full details of how it will be altered
+              Call resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_adaption2_altered",True),10).Keys(fulldetailsofhowitwillbealteredVal1 )   
+            End If
+          End If
+     
+       ''############## TABLE   TABLE   TABLE   TABLE     TABLE    ##############################
+        ElseIf InStr(extractsAccordion.FindChild("className","*ui-state-active*",10).innerHTML,"extract=""table""") <> 0 THEN
+        Set resourcepanel_o = extractsAccordion.FindChild(Array("ObjectIdentifier","innerHTML"),Array("resource*","*accordion-content-active*"),10)
+          If selectedformattype = "Serial" Or selectedformattype = "Webdomain" then
+          '# Content Source
+          Set contentsource =  resourcepanel_o.FindChild(Array("ObjectType","nextSibling.innerText","Visible"),Array("RadioButton",contentsourceVal1,True),10)
+          If contentsource.Exists then
+            contentsource.scrollIntoView(1)
+            contentsource.Click
+          End If
+          '# issue date
+          Set issuedate =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_issue_date",True),10)
+          If issuedate.Exists then
+            issuedate.scrollIntoView(1)
+            issuedate.SetText(issuedateVal1)
+          End If
+          '# issue Number
+          Set issuenumber =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_issue_number",True),10)
+          If issuenumber.Exists then
+            issuenumber.scrollIntoView(1)
+            issuenumber.SetText(issuenumberVal1)
+          End If
+          '# issue URL
+          Set issueURL =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_issue_url",True),10)
+          If issueURL.Exists Then
+            issueURL.scrollIntoView(1)
+            issueURL.SetText(issueurlVal1)
+          End If
+          '# article title
+          Set articletitle =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_article_title",True),10)
+          If articletitle.Exists Then
+            articletitle.scrollIntoView(1)
+            articletitle.SetText(articletitleVal1)
+          End If
+        End If
+          '# Figure number & title/caption
+          Set figurenumber_title =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_table_name",True),10)
+          If figurenumber_title.Exists Then
+            figurenumber_title.scrollIntoView(1)
+            figurenumber_title.SetText(figurenumber_titleVal1)
+          End If
+          '# Are you the author of this work
+          Set areyoutheauthorofthiswork =  resourcepanel_o.FindChild(Array("ObjectType","nextSibling.innerText","Visible"),Array("RadioButton",areyoutheauthorofthisworkVal1,True),10)
+          If areyoutheauthorofthiswork.Exists then
+            areyoutheauthorofthiswork.scrollIntoView(1)
+            areyoutheauthorofthiswork.Click
+          End If
+          '# table/chart description
+          Set table_chart_desc = resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_table_desc",True),10)
+          If table_chart_desc.Exists then
+            table_chart_desc.scrollIntoView(1)
+            table_chart_desc.SetText(tableVal1)
+          End If
+          '# page number
+          Set pageno =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_page_no",True),10)
+          If pageno.Exists then
+            pageno.scrollIntoView(1)
+            pageno.SetText(pagenumberVal1)
+          End If
+          ''## additional information
+          Set additionalinformation = resourcepanel_o.FindChild(Array("idStr","ObjectType","Visible"),Array("*_other","Textarea",True),10)
+          If additionalinformation.Exists then
+            additionalinformation.scrollIntoView(1)
+            additionalinformation.Keys(additionalinformationVal1)
+          End If 
+          '# will you be alerting the image or text?
+          Set willyoubealertingtheimageortext =  resourcepanel_o.FindChild(Array("ObjectType","nextSibling.textContent","Visible"),Array("Checkbox","will you be altering the image or text?",True),10)
+          If willyoubealertingtheimageortext.Exists then
+            willyoubealertingtheimageortext.scrollIntoView(0)
+            willyoubealertingtheimageortext.ClickChecked(willyoubealertingtheimageortextVal1)
+            If willyoubealertingtheimageortextVal1 = "True" then
+              ''# will it be cropped
+              If willitbecroppedVal1 = "Yes" then
+                Call resourcepanel_o.FindChild(Array("ObjectType","ObjectIdentifier","Visible"),Array("RadioButton","repo_size",True),10).scrollIntoView(1)
+                Call resourcepanel_o.FindChild(Array("ObjectType","ObjectIdentifier","Visible"),Array("RadioButton","repo_size",True),10).scrollIntoView(1).ClickButton
+              ElseIf willitbecroppedVal1 = "No" then
+                Call resourcepanel_o.FindChild(Array("ObjectType","ObjectIdentifier","Visible"),Array("RadioButton","repo_size_2",True),10).scrollIntoView(1)
+                Call resourcepanel_o.FindChild(Array("ObjectType","ObjectIdentifier","Visible"),Array("RadioButton","repo_size_2",True),10).ClickButton
+              End If  
+              ''# full details of how it will be altered
+              Call resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_adaption2_altered",True),10).Keys(fulldetailsofhowitwillbealteredVal1 )   
+            End If
+          End If
+  
+       ''############## ARTICLE/CHAPTER  ARTICLE/CHAPTER    ARTICLE/CHAPTER     ARTICLE/CHAPTER  ###############################
+       ElseIf InStr(extractsAccordion.FindChild("className","*ui-state-active*",10).innerHTML,"extract=""article""") <> 0 then
+           ''## ARTICLE
+           Set resourcepanel_o = extractsAccordion.FindChild(Array("ObjectIdentifier","innerHTML"),Array("resource*","*accordion-content-active*"),10)
+           If selectedformattype = "Serial" Or selectedformattype = "Webdomain" then
+             '# year of publication
+             Set yearofpublication = resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_year_of_publication",True),10)
+             If yearofpublication.Exists then
+               yearofpublication.scrollIntoView(1)
+               yearofpublication.SetText(yearofpublicationVal1)
+             End If
+             '# volumenumber
+             Set volumenumber = resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_vol_no",True),10)
+             If volumenumber.Exists then
+               volumenumber.scrollIntoView(1)
+               volumenumber .SetText(volumenumberVal1)
+             End If
+             '# issue Number
+             Set issuenumber =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_issue_number",True),10)
+             If issuenumber.Exists then
+               issuenumber.scrollIntoView(1)
+               issuenumber.SetText(issuenumberVal1)
+             End If
+             '# article title
+             Set articletitle =  resourcepanel_o.indChild(Array("idStr","Visible"),Array("_article_title",True),10)
+             If articletitle.Exists Then
+               articletitle.scrollIntoView(1)
+               articletitle.SetText(articletitleVal1)
+             End If
+             '# Article Author
+             Set author_article = resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_article_author",True),10)
+             If author_article.Exists then
+               author_article.scrollIntoView(1)
+               author_article.SetText(articleauthorVal1)
+             End If
+             '# Are you the author of this work
+             Set areyoutheauthorofthiswork =  resourcepanel_o.FindChild(Array("ObjectType","nextSibling.innerText","Visible"),Array("RadioButton",areyoutheauthorofthisworkVal1,True),10)
+             If areyoutheauthorofthiswork.Exists then
+               areyoutheauthorofthiswork.scrollIntoView(1)
+               areyoutheauthorofthiswork.Click
+             End If
+             ''## additional information
+            Set additionalinformation = resourcepanel_o.FindChild(Array("idStr","ObjectType","Visible"),Array("*_other","Textarea",True),10)
+            If additionalinformation.Exists then
+              additionalinformation.scrollIntoView(1)
+              additionalinformation.Keys(additionalinformationVal1)
+            End If 
+             '# page number
+             Set pagenumber =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_page_no",True),10)
+             If pagenumber.Exists Then
+               pagenumber.scrollIntoView(1)
+               pagenumber.SetText(pagenumberVal1)
+             End If
+             '# number of words_Article
+             Set numberofwords_article = resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_noofwords",True),10)
+             If numberofwords_article.Exists Then
+               numberofwords_article.scrollIntoView(1)
+               numberofwords_article.SetText(numberofwords_articleVal1)
+             End If
+             '# will you be alerting the text?
+             Set willyoubealertingthetext =  resourcepanel_o.FindChild(Array("ObjectType","nextSibling.textContent","Visible"),Array("Checkbox","will you be altering the text?",True),10)
+             If willyoubealertingthetext.Exists then
+               willyoubealertingthetext.scrollIntoView(1)
+               willyoubealertingthetext.ClickChecked(willyoubealertingthetextVal1)
+               If willyoubealertingthetextVal1 = "True" then
+               '# full details about the adaption
+                 Call resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_adaption_detail",True),10).Keys(fulldetailsabouttheadaptionVal1)   
+               End If
+             End If
+            End If 
+           ElseIf InStr(extractsAccordion.FindChild("className","*ui-state-active*",10).innerHTML,"extract=""chapter""") <> 0 Then
+             '## CHAPTER
+             '# Chapter Name
+             Set chaptername = resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_chapter_name",True),10)
+             If chaptername.Exists then
+               chaptername.scrollIntoView(1)
+               chaptername.SetText(chapternameVal1)
+             End If
+             '# Chapter Number
+             Set chapternumber = resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_chapter_no",True),10)
+             If chapternumber.Exists then
+               chapternumber.scrollIntoView(1)
+               chapternumber.SetText(chapternumberVal1)
+             End If
+             '# Number of Words
+             Set numberofwords = resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_noofwords",True),10)
+             If numberofwords.Exists then
+               numberofwords.scrollIntoView(1)
+               numberofwords.SetText(numberofwordsVal1)
+             End If
+             '# page Range
+             Set pagerange = resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_page_no",True),10)
+             If pagerange.Exists then
+               pagerange.scrollIntoView(1)
+               pagerange.SetText(pagerangeVal1)
+             End If
+             '# Are you the author of this work
+             Set areyoutheauthorofthiswork = resourcepanel_o.FindChild(Array("ObjectType","nextSibling.innerText","Visible"),Array("RadioButton",areyoutheauthorofthisworkVal1,True),10)
+             If areyoutheauthorofthiswork.Exists then
+               areyoutheauthorofthiswork.scrollIntoView(1)
+               areyoutheauthorofthiswork.Click
+             End If
+             ''## additional information
+             Set additionalinformation = resourcepanel_o.FindChild(Array("idStr","ObjectType","Visible"),Array("*_other","Textarea",True),10)
+             If additionalinformation.Exists then
+               additionalinformation.scrollIntoView(1)
+               additionalinformation.Keys(additionalinformationVal1)
+             End If 
+             '# will you be alerting the text?
+             Set willyoubealertingthetext =  resourcepanel_o.FindChild(Array("ObjectType","nextSibling.textContent","Visible"),Array("Checkbox","will you be altering the text?",True),10)
+             If willyoubealertingthetext.Exists then
+               willyoubealertingthetext.scrollIntoView(1)
+               willyoubealertingthetext.ClickChecked(willyoubealertingthetextVal1)
+               If willyoubealertingthetextVal1 = "True" then
+               '# full details about the adaption
+                 Call resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_adaption_detail",True),10).Keys(fulldetailsabouttheadaptionVal1)   
+               End If
+             End If
+       End If
+    Next
+     '# Clicks on Continue button
+     Call page.FindChild("className","buttonNext",20).Click    
+    ''## Re-Use Project Panel if appears .... (Yes for reuse, No for create new project). To Do : Include reuse dropdown)
+    Call page.Refresh
+    Set reuseprojectswitchpanel = page.FindChild(Array("className","VisibleOnScreen"),Array("contentReuseQuestion collapsed",True),30)
+    If reuseprojectswitchpanel.Exists then
+      If reuseprojectswitchVal = "Yes" then
+        reuseprojectswitchpanel.FindChild(Array("className","contentText","VisibleOnScreen"),Array("usageSwitch","Yes",True),10).Click
+      ElseIf reuseprojectswitchVal = "No" then
+        reuseprojectswitchpanel.FindChild(Array("className","contentText","VisibleOnScreen"),Array("usageSwitch","No",True),10).Click
+      End If
+    End If
+  End Function
+  
+  ''######################################################################################################################################################################
+  ''########################### Function to 'Select Planned Usage'
+  ''#######################################################################################################################################################################
+  Function SelectPlannedUsage(browserVal,usagetypeVal,usagesubtypeVal)
+    Set browser = Sys.Find("ProcessName",browserVal,15)
+    Set page = browser.Find(Array("URL","Visible"),Array("*pls*",True),10)
+    Call page.Refresh
+    '# Regular expression is used in below statement to not select the tree whose clientHeight = 0. If not the TC will look for another hidden tree and the test fails.
+    Set tree = page.Find(Array("idStr","clientHeight"),Array("tree","regexp:[^0]+"),30)
+    
+    ''#### Parent Test node expansion based on the target usagesubtypeVal
+    Set textnodex = tree.FindChildByXPath("//ul/li[contains(.,'"& usagesubtypeVal &"')]//child::p") '# The xpath looks for tag 'p'(textnode) which is the child of parent list element containing usagesubtypeVal
+    If Not textnodex Is Nothing then
+      If textnodex.Visible then '# This condition is to check if the textnode is already expanded and not perform action if it is expanded. If Visible = False then textnode is expanded
+        If textnodex.VisibleOnScreen = False then  '# this condition is to scroll to screen the textnode if it is out of bounds
+          Call textnodex.scrollIntoView(1)
+        End If
+        Call textnodex.Click 
+        Log.Message("TextNode '"& textnodex.contentText &"' is clicked for it's expansion")
+      End If
+    Else
+      Log.Warning("Parent textnode for target "& usagesubtypeVal &" is not recognised through script to be expanded. So the test might fail for not finding the child node")
+    End If
+  
+    ''## Node Expansion (ex: Book. Web-based Content, TV show, etc) 
+    dynacollapsedAll = tree.FindAllChildren(Array("ObjectType","parentNode.outerHTML","VisibleOnScreen"),Array("Link","*dynatree-folder dynatree-has-children*",True),10)
+    For i = 0 to Ubound(dynacollapsedAll)
+      If not dynacollapsedAll(i) is Nothing then '# Only expands if target is under the parent node. If target is visible already then no action is performed
+        If InStr(dynacollapsedAll(i).parentNode.parentNode.innerHTML,usagesubtypeVal) <> 0 then
+          Call dynacollapsedAll(i).Click
+          Log.Message(dynacollapsedAll(i).innerText &" was Expanded.")
+    Exit For
+        End If
+      End If
+    Next
+    
+    ''## usagetype Expansion (ex: Original text with a few quotes, Anthology or Edited Collection, Textbook, etc). 
+    ''## If Invalid usagetype or Null value is given and usagesubtypeVal is still hidden under this node then test fails
+    Set usagetype = tree.FindChild(Array("ObjectType","contentText"),Array("Link",usagetypeVal),10)
+    If usagetype.Exists Then
+      If InStr(usagetype.parentNode.parentNode.outerHTML,usagesubtypeVal) <> 0 And InStr(usagetype.parentNode.outerHTML,"dynatree-exp-c") <> 0 then '# Selects if target node is its child object
+        Call usagetype.Click
+        Log.Message("'"& usagetypeVal &"' was expanded.")
+      ElseIf InStr(usagetype.parentNode.parentNode.outerHTML,usagesubtypeVal) = 0 then '# If not target link its child object then shows warning in the log.
+        Log.Warning("'"& usagetypeVal &"' is not a parent node of '"& usagesubtypeVal &"'. Hence the no action performed on usagetypeVal")
+      End If
+    ElseIf usagetype.Exists = False then '# If not usagetype found, below warning is shown.
+      Log.Warning("'"& usagetypeVal &"' could Not be found. Check the provided usagetypeVal value.")
+    ElseIf usagetype.Exists And usagetype.VisibleOnScreen = False then '# If usagetype exists but not visible on screen. Checks if parent Textnode expansion is successful.
+      Log.Warning("'"& usagetypeVal &"' is in hidden state. Check if parent node is expanded.")
+    End If
+    ''## usagesubtype Selection
+    Call page.Refresh
+    Set usagesubtype = tree.FindChild(Array("contentText","ObjectType","VisibleOnScreen"),Array(usagesubtypeVal,"Link",True),10)
+    If usagesubtype.Exists Then '# Checks if usagesubtype or Target link is found
+      If InStr(usagesubtype.parentNode.outerHTML, "selected") = 0 then '# Checks of target link is Already selected and performs click to select only if not already selected. Else warning.
+        Call usagesubtype.DblClick
+        Log.Checkpoint("'"& usagetypeVal &"' - '"& usagesubtypeval &"' selected")
+      Else
+        Log.Warning(usagetypeVal &" - "& usagesubtypeval &" was Already selected")
+      End If
+    Else '# If target link object not found due to wrong parameter values provided by tester or if object not identified/removed/not visible
+      Log.Warning(usagesubtypeVal &" could Not be found. Check the provided usagesubtypeVal value.")
+    End If
+
+  End Function
+  
+ ''##################################################################################################################################################
