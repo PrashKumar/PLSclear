@@ -1,21 +1,307 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <Root signature="{9252F941-DB23-4FCA-AA50-858B33BB4A19}" version="11.40">
 	<children>
-		<child name="Unit_Test" key="{3486E468-6BF5-4313-AEA2-3C441C67A1FC}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
-			<data path="Unit_Test.svb" />
+		<child name="z_DRAFT_Workspace" key="{3486E468-6BF5-4313-AEA2-3C441C67A1FC}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="z_DRAFT_Workspace.svb" />
 		</child>
 		<child name="LIBRARY" key="{9CF6B802-BCBF-4458-9E6F-443C5E285160}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
 			<data path="LIBRARY.svb" />
 		</child>
-		<child name="Demo" key="{809DEDE3-31B8-474D-BF5D-B0ABEAF1B13B}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
-			<data path="Demo.svb" />
+		<child name="Request_wizard_Test" key="{3CB2D8F0-EBAE-4B17-B3CB-158EE3DCC838}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="Request_wizard_Test.svb" />
 		</child>
-		<child name="Title_Request_ByRequestor" key="{902ACBB2-BEB3-4FEC-BA9A-11FF7590D911}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
-			<data path="Title_Request_ByRequestor.svb" />
+		<child name="Parameters_List" key="{A634C4AC-F5E3-4E2A-A844-6557BE290820}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="Parameters_List.svb" />
 		</child>
-		<child name="Details_of_Content" key="{C07D2838-A21D-450C-8ED3-FED946AD1AA3}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
-			<data path="Details_of_Content.svb" />
+		<child name="Batch_Requests_Test" key="{2F4C48FE-36DC-4356-BBFD-9AEA4AE2C5EE}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="Batch_Requests_Test.svb" />
+		</child>
+		<child name="STAT_tc9_PendingStatus_ProgrammeParameters_NOTSET" key="{C56A2280-28E5-4C22-8046-9DCDE45EEDAF}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="STAT_tc9_PendingStatus_ProgrammeParameters_NOTSET.svb" />
+		</child>
+		<child name="STAT_tc2_CancelledStatus_RQcancelsRequest" key="{6D8F2B27-5365-4535-87C4-40BAEE529807}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="STAT_tc2_CancelledStatus_RQcancelsRequest.svb" />
+		</child>
+		<child name="STAT_tc1_CancelledStatus_RHcancelsLicence" key="{C05DF1E4-021C-4430-BA62-B5C34407875A}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="STAT_tc1_CancelledStatus_RHcancelsLicence.svb" />
+		</child>
+		<child name="STAT_tc3_DeclinedStatus_RHdeclinesRequest" key="{86DC7FFC-EE06-45E0-9AE4-150F5E6CE363}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="STAT_tc3_DeclinedStatus_RHdeclinesRequest.svb" />
+		</child>
+		<child name="STAT_tc8_MoreInfoRequested_RHrequestsInfo" key="{B85049F6-8487-411D-84B6-F7F228119F3C}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="STAT_tc8_MoreInfoRequested_RHrequestsInfo.svb" />
+		</child>
+		<child name="STAT_tc10_PendingStatus_ProgrammeParameters_SET" key="{97C848BC-F347-4575-ACEE-57C0F22945D4}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="STAT_tc10_PendingStatus_ProgrammeParameters_SET.svb" />
+		</child>
+		<child name="STAT_tc4_DeclinedStatus_RHdeclinesRequest_followingQuotation" key="{BE891AEB-C864-4B8E-B856-3568525EF0A6}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="STAT_tc4_DeclinedStatus_RHdeclinesRequest_followingQuotation.svb" />
+		</child>
+		<child name="STAT_tc12_QuotationSent_ManualQuotationByRH" key="{3C1F29F7-78A7-4D85-B31A-2CD1DC71E982}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="STAT_tc12_QuotationSent_ManualQuotationByRH.svb" />
+		</child>
+		<child name="Login_Tests" key="{85FADD4F-DA00-4B9A-8067-105067DFAD95}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="Login_Tests.svb" />
+		</child>
+		<child name="Sanity_Test" key="{69B009D7-9F93-42DD-954B-64B7D2126E6F}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="Sanity_Test.svb" />
+		</child>
+		<child name="STAT_tc13_QuoteAccepted_QuoteAcceptedByRQ" key="{AAEA84DB-3C23-405F-B7E6-3407F1D45ACE}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="STAT_tc13_QuoteAccepted_QuoteAcceptedByRQ.svb" />
+		</child>
+		<child name="STAT_tc6_LicenceIssued_ManualFoCLicence" key="{981BE921-CD3F-4C5A-91DF-A79926454F0F}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="STAT_tc6_LicenceIssued_ManualFoCLicence.svb" />
+		</child>
+		<child name="LIBRARY_REQUESTMANAGER" key="{83C4EF44-E0F0-4BA1-93C5-30CC53457284}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="LIBRARY_REQUESTMANAGER.svb" />
+		</child>
+		<child name="LIBRARY_TITLEMANAGER" key="{FC48F755-E114-4794-841C-E7B59F589E65}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="LIBRARY_TITLEMANAGER.svb" />
+		</child>
+		<child name="STAT_tc5_LicenceIssued_AutomatedFoCLicence" key="{C29040BD-9EAB-4B41-96B2-CD20F74F378D}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="STAT_tc5_LicenceIssued_AutomatedFoCLicence.svb" />
+		</child>
+		<child name="STAT_tc11_QuotationSent_AutomatedFPLQuotation" key="{938C7AE1-3F09-44B4-9EBC-9DF3EC89524F}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="STAT_tc11_QuotationSent_AutomatedFPLQuotation.svb" />
+		</child>
+		<child name="STAT_tc7_LicenceIssued_ManualFPLLicence" key="{C0F88402-F9B0-4D9F-B61C-F7A9B0BE021C}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="STAT_tc7_LicenceIssued_ManualFPLLicence.svb" />
+		</child>
+		<child name="Batch_StatusTests" key="{BA556B8B-E952-48C6-8D99-B07894EE60C5}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="Batch_StatusTests.svb" />
+		</child>
+		<child name="FPL_tc1_Title_excluded_from_FPL" key="{D5A6C302-AAFF-453E-8E80-97948E3D00BA}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="FPL_tc1_Title_excluded_from_FPL.svb" />
+		</child>
+		<child name="FPL_tc2_Print_format_excluded_from_FPL" key="{981F009E-2424-4A32-B407-D8BA3B8E9F37}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="FPL_tc2_Print_format_excluded_from_FPL.svb" />
+		</child>
+		<child name="FPL_tc3_Digital_format_excluded_from_FPL" key="{03004FCD-FF48-4F33-BC26-CDB54D03577C}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="FPL_tc3_Digital_format_excluded_from_FPL.svb" />
+		</child>
+		<child name="FPL_tc4_Audio_format_excluded_from_FPL" key="{875274DA-9FD2-47A7-828D-F481FF9176C9}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="FPL_tc4_Audio_format_excluded_from_FPL.svb" />
+		</child>
+		<child name="FPL_tc5_Multimedia_format_excluded_from_FPL" key="{CACF6DC2-B845-4889-9B8E-E8972511CDA6}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="FPL_tc5_Multimedia_format_excluded_from_FPL.svb" />
+		</child>
+		<child name="FPL_tc6_Coursepack_format_excluded_from_FPL" key="{F9A3F851-4049-423C-B0A1-9BE772DB9C5B}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="FPL_tc6_Coursepack_format_excluded_from_FPL.svb" />
+		</child>
+		<child name="FPL_tc7A_Circulation_restriction_MaxTotalCirculation_PositiveTest" key="{F7E27A0B-170C-481F-AC14-AF71EA19D48B}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="FPL_tc7A_Circulation_restriction_MaxTotalCirculation_PositiveTest.svb" />
+		</child>
+		<child name="FPL_tc7B_Circulation_restriction_MaxTotalCirculation_NegativeTest" key="{F40B716B-7044-4138-891B-2F8AB61F0551}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="FPL_tc7B_Circulation_restriction_MaxTotalCirculation_NegativeTest.svb" />
+		</child>
+		<child name="Batch_FPL_Tests" key="{CEC3FB19-F93B-44F3-AF11-AC6F7C23CF8F}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="Batch_FPL_Tests.svb" />
+		</child>
+		<child name="Batch_FoC_Tests" key="{8B6D2D96-6C0A-42F3-B293-5A2E7DCB1D2E}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="Batch_FoC_Tests.svb" />
+		</child>
+		<child name="FPL_tc7C_Circulation_restriction_MaxPrintCirculation_PositiveTest" key="{AFAA0E6F-6F48-4312-A671-A38225854A36}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="FPL_tc7C_Circulation_restriction_MaxPrintCirculation_PositiveTest.svb" />
+		</child>
+		<child name="FPL_tc7D_Circulation_restriction_MaxPrintCirculation_NegativeTest" key="{007EB067-31D2-41D1-9B5A-F8049E3BA418}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="FPL_tc7D_Circulation_restriction_MaxPrintCirculation_NegativeTest.svb" />
+		</child>
+		<child name="FPL_tc7E_Circulation_restriction_MaxEbookCirculation_PositiveTest" key="{0D596949-8711-4A31-AD88-DA278022A229}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="FPL_tc7E_Circulation_restriction_MaxEbookCirculation_PositiveTest.svb" />
+		</child>
+		<child name="FPL_tc7F_Circulation_restriction_MaxEbookCirculation_NegativeTest" key="{3856F207-9F83-4C28-B7D1-F2273DFCD762}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="FPL_tc7F_Circulation_restriction_MaxEbookCirculation_NegativeTest.svb" />
+		</child>
+		<child name="FPL_tc7G_Circulation_restriction_MaxWebCirculation_PositiveTest" key="{D2AE1751-86DB-44E4-BB1B-2FE2CA19C72E}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="FPL_tc7G_Circulation_restriction_MaxWebCirculation_PositiveTest.svb" />
+		</child>
+		<child name="FPL_tc7H_Circulation_restriction_MaxWebCirculation_NegativeTest" key="{1D6D2BA6-8E9C-41AE-B671-CADD2C7C280B}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="FPL_tc7H_Circulation_restriction_MaxWebCirculation_NegativeTest.svb" />
+		</child>
+		<child name="FPL_tc8A_Territory_restriction_PositiveTest" key="{37B0433F-1800-4E30-B43A-882DA7F50E9C}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="FPL_tc8A_Territory_restriction_PositiveTest.svb" />
+		</child>
+		<child name="FPL_tc8B_Territory_restriction_NegativeTest" key="{3B6FE189-A6A5-48D4-9694-9869CAFED0BA}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="FPL_tc8B_Territory_restriction_NegativeTest.svb" />
+		</child>
+		<child name="FPL_tc9A_Language_restriction_PositiveTest" key="{A1A67956-80C4-4226-B20A-BDB1B6F2201D}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="FPL_tc9A_Language_restriction_PositiveTest.svb" />
+		</child>
+		<child name="FPL_tc10A_AutomationLevel_as_Review" key="{47D90F57-3A23-4499-BDB5-12BDAF6E7E81}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="FPL_tc10A_AutomationLevel_as_Review.svb" />
+		</child>
+		<child name="FPL_tc10B_AutomationLevel_as_AutomaticQuote" key="{1FD3BD09-D297-4D8E-9B10-D53B07292873}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="FPL_tc10B_AutomationLevel_as_AutomaticQuote.svb" />
+		</child>
+		<child name="FPL_tc11A_UseOnePriceForAllSectors_ValidatePrice" key="{CC57ACC3-C002-4AD5-91CD-B2E3B2DA9503}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="FPL_tc11A_UseOnePriceForAllSectors_ValidatePrice.svb" />
+		</child>
+		<child name="FPL_tc12A_SetIndividualPricesPerSector_ValidatePrice" key="{C92A7F8E-63B8-4908-9CD6-9BE70FE8320A}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="FPL_tc12A_SetIndividualPricesPerSector_ValidatePrice.svb" />
+		</child>
+		<child name="FPL_tc13A_UseOnePriceForAllPurposes_ValidatePrice" key="{A2DCE164-BFB5-420D-9409-A650D87B19A2}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="FPL_tc13A_UseOnePriceForAllPurposes_ValidatePrice.svb" />
+		</child>
+		<child name="FPL_tc14A_SetIndividualPricesPerPurpose_ValidatePrice" key="{FD395D51-9B5B-4F56-990A-A68CDAFCC8B6}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="FPL_tc14A_SetIndividualPricesPerPurpose_ValidatePrice.svb" />
+		</child>
+		<child name="FPL_tc15A_UseOnePriceForAllCirculations_ValidatePrice" key="{F2815EAB-CEB2-4657-8D63-95C99E0F6EC9}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="FPL_tc15A_UseOnePriceForAllCirculations_ValidatePrice.svb" />
+		</child>
+		<child name="FPL_tc16A_SetIndividualPricesPerCirculation_ValidatePrice" key="{A456E116-B6A7-47B6-9B4C-3D4ED1D5EB15}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="FPL_tc16A_SetIndividualPricesPerCirculation_ValidatePrice.svb" />
+		</child>
+		<child name="FPL_tc17A_PricePerPhotocopy_EducationalUse_ValidatePrice" key="{F7565D0E-BB97-4616-B51E-5ED02F0FADCE}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="FPL_tc17A_PricePerPhotocopy_EducationalUse_ValidatePrice.svb" />
+		</child>
+		<child name="FPL_tc18A_PricePerPhotocopy_CommercialUse_ValidatePrice" key="{40F8CA68-611D-4174-BE3F-2DDE93EEBC4B}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="FPL_tc18A_PricePerPhotocopy_CommercialUse_ValidatePrice.svb" />
+		</child>
+		<child name="FPL_tc19A_PricePerPhotocopy_ResearchUse_ValidatePrice" key="{8C3D73AF-8781-4EF5-9BC2-C98BEA885E36}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="FPL_tc19A_PricePerPhotocopy_ResearchUse_ValidatePrice.svb" />
+		</child>
+		<child name="FOC_tc1_Title_excluded_from_FOC" key="{838E41FB-189D-4437-985E-CC84F690FE2D}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="FOC_tc1_Title_excluded_from_FOC.svb" />
+		</child>
+		<child name="FOC_tc2A_Thesis_ParametersPerContentType_SetAsYes_PositiveTest" key="{D7902767-B486-4F45-896B-A55D7650F901}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="FOC_tc2A_Thesis_ParametersPerContentType_SetAsYes_PositiveTest.svb" />
+		</child>
+		<child name="FOC_tc3A_Thesis_ParametersPerContentType_SetAsNo_NegativeTest" key="{D9AA5068-F778-4D7D-89B4-6073600C8043}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="FOC_tc3A_Thesis_ParametersPerContentType_SetAsNo_NegativeTest.svb" />
+		</child>
+		<child name="FOC_tc4A_AuthorRequests_ParametersPerContentType_SetAsYes_PositiveTest" key="{46E82EF3-FF9B-42B1-98D1-3028B1680BB5}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="FOC_tc4A_AuthorRequests_ParametersPerContentType_SetAsYes_PositiveTest.svb" />
+		</child>
+		<child name="FOC_tc5A_AuthorRequests_ParametersPerContentType_SetAsNo_PositiveTest" key="{991F3D5E-1350-42B8-BB13-47E48A5E4AE3}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="FOC_tc5A_AuthorRequests_ParametersPerContentType_SetAsNo_PositiveTest.svb" />
+		</child>
+		<child name="FOC_tc6A_OtherRequests_Set_MaximumWordCount_PositiveTest" key="{9CA5396B-6B59-475B-BBDB-B2531F7667E4}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="FOC_tc6A_OtherRequests_Set_MaximumWordCount_PositiveTest.svb" />
+		</child>
+		<child name="FOC_tc7A_OtherRequests_Set_MaximumTableCount_PositiveTest" key="{9929154E-6BBD-486D-87C4-DFE4A9593287}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="FOC_tc7A_OtherRequests_Set_MaximumTableCount_PositiveTest.svb" />
+		</child>
+		<child name="FOC_tc8A_OtherRequests_Set_MaximumIllustrationsCount_PositiveTest" key="{8F7ED85B-EA26-4953-A358-2586C88FE108}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="FOC_tc8A_OtherRequests_Set_MaximumIllustrationsCount_PositiveTest.svb" />
+		</child>
+		<child name="FOC_tc9A_OtherRequests_Set_CirculationPerFormat_PositiveTest" key="{B8394D5D-A2AC-4945-9BD4-ABBF0359EEEB}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="FOC_tc9A_OtherRequests_Set_CirculationPerFormat_PositiveTest.svb" />
+		</child>
+		<child name="FOC_tc10A_OtherRequests_Set_OneCirculationForAllFormats_PositiveTest" key="{8C1739E7-2033-49E0-9EE5-1781AB7D28FD}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="FOC_tc10A_OtherRequests_Set_OneCirculationForAllFormats_PositiveTest.svb" />
+		</child>
+		<child name="FOC_tc11A_OtherRequests_Set_TerritoryRestriction_PositiveTest" key="{87A5A559-EE20-4E3A-A2DD-0193D38D9207}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="FOC_tc11A_OtherRequests_Set_TerritoryRestriction_PositiveTest.svb" />
+		</child>
+		<child name="FOC_tc12A_Set_AutomationLevel_as_Review" key="{7457664D-BD58-4564-BF18-E456A62D61F9}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="FOC_tc12A_Set_AutomationLevel_as_Review.svb" />
+		</child>
+		<child name="FOC_tc12B_Set_AutomationLevel_as_AutomaticLicence" key="{E6D287FE-ABE0-48B9-8079-D272435DD845}" type="Script Unit" typeId="{291CAE9C-4D20-4F33-8B5F-D48B587F3D65}" pluginName="Script">
+			<data path="FOC_tc12B_Set_AutomationLevel_as_AutomaticLicence.svb" />
 		</child>
 	</children>
-	<folders />
+	<folders>
+		<folder caption="PLS_Main" description="A logical folder that is used to organize project items and elements." moniker="">
+			<folders>
+				<folder caption="FUNCTIONS" description="A logical folder that is used to organize project items and elements." moniker="">
+					<references>
+						<ref key="{9CF6B802-BCBF-4458-9E6F-443C5E285160}" />
+						<ref key="{83C4EF44-E0F0-4BA1-93C5-30CC53457284}" />
+						<ref key="{FC48F755-E114-4794-841C-E7B59F589E65}" />
+					</references>
+				</folder>
+				<folder caption="TEST CASES" description="A logical folder that is used to organize project items and elements." moniker="">
+					<folders>
+						<folder caption="Status_Tests" description="A logical folder that is used to organize project items and elements." moniker="">
+							<references>
+								<ref key="{C56A2280-28E5-4C22-8046-9DCDE45EEDAF}" />
+								<ref key="{6D8F2B27-5365-4535-87C4-40BAEE529807}" />
+								<ref key="{C05DF1E4-021C-4430-BA62-B5C34407875A}" />
+								<ref key="{86DC7FFC-EE06-45E0-9AE4-150F5E6CE363}" />
+								<ref key="{B85049F6-8487-411D-84B6-F7F228119F3C}" />
+								<ref key="{97C848BC-F347-4575-ACEE-57C0F22945D4}" />
+								<ref key="{BE891AEB-C864-4B8E-B856-3568525EF0A6}" />
+								<ref key="{3C1F29F7-78A7-4D85-B31A-2CD1DC71E982}" />
+								<ref key="{AAEA84DB-3C23-405F-B7E6-3407F1D45ACE}" />
+								<ref key="{981BE921-CD3F-4C5A-91DF-A79926454F0F}" />
+								<ref key="{C29040BD-9EAB-4B41-96B2-CD20F74F378D}" />
+								<ref key="{938C7AE1-3F09-44B4-9EBC-9DF3EC89524F}" />
+								<ref key="{C0F88402-F9B0-4D9F-B61C-F7A9B0BE021C}" />
+								<ref key="{BA556B8B-E952-48C6-8D99-B07894EE60C5}" />
+							</references>
+						</folder>
+						<folder caption="Request wizard Tests" description="A logical folder that is used to organize project items and elements." moniker="">
+							<references>
+								<ref key="{3CB2D8F0-EBAE-4B17-B3CB-158EE3DCC838}" />
+								<ref key="{2F4C48FE-36DC-4356-BBFD-9AEA4AE2C5EE}" />
+							</references>
+						</folder>
+						<folder caption="FPL Programme Tests" description="A logical folder that is used to organize project items and elements." moniker="">
+							<references>
+								<ref key="{875274DA-9FD2-47A7-828D-F481FF9176C9}" />
+								<ref key="{CACF6DC2-B845-4889-9B8E-E8972511CDA6}" />
+								<ref key="{F9A3F851-4049-423C-B0A1-9BE772DB9C5B}" />
+								<ref key="{F7E27A0B-170C-481F-AC14-AF71EA19D48B}" />
+								<ref key="{F40B716B-7044-4138-891B-2F8AB61F0551}" />
+								<ref key="{AFAA0E6F-6F48-4312-A671-A38225854A36}" />
+								<ref key="{007EB067-31D2-41D1-9B5A-F8049E3BA418}" />
+								<ref key="{0D596949-8711-4A31-AD88-DA278022A229}" />
+								<ref key="{3856F207-9F83-4C28-B7D1-F2273DFCD762}" />
+								<ref key="{D2AE1751-86DB-44E4-BB1B-2FE2CA19C72E}" />
+								<ref key="{1D6D2BA6-8E9C-41AE-B671-CADD2C7C280B}" />
+								<ref key="{37B0433F-1800-4E30-B43A-882DA7F50E9C}" />
+								<ref key="{3B6FE189-A6A5-48D4-9694-9869CAFED0BA}" />
+								<ref key="{A1A67956-80C4-4226-B20A-BDB1B6F2201D}" />
+								<ref key="{CEC3FB19-F93B-44F3-AF11-AC6F7C23CF8F}" />
+								<ref key="{D5A6C302-AAFF-453E-8E80-97948E3D00BA}" />
+								<ref key="{47D90F57-3A23-4499-BDB5-12BDAF6E7E81}" />
+								<ref key="{1FD3BD09-D297-4D8E-9B10-D53B07292873}" />
+								<ref key="{981F009E-2424-4A32-B407-D8BA3B8E9F37}" />
+								<ref key="{03004FCD-FF48-4F33-BC26-CDB54D03577C}" />
+								<ref key="{CC57ACC3-C002-4AD5-91CD-B2E3B2DA9503}" />
+								<ref key="{C92A7F8E-63B8-4908-9CD6-9BE70FE8320A}" />
+								<ref key="{A2DCE164-BFB5-420D-9409-A650D87B19A2}" />
+								<ref key="{FD395D51-9B5B-4F56-990A-A68CDAFCC8B6}" />
+								<ref key="{F2815EAB-CEB2-4657-8D63-95C99E0F6EC9}" />
+								<ref key="{A456E116-B6A7-47B6-9B4C-3D4ED1D5EB15}" />
+								<ref key="{F7565D0E-BB97-4616-B51E-5ED02F0FADCE}" />
+								<ref key="{40F8CA68-611D-4174-BE3F-2DDE93EEBC4B}" />
+								<ref key="{8C3D73AF-8781-4EF5-9BC2-C98BEA885E36}" />
+							</references>
+						</folder>
+						<folder caption="FoC Programme Tests" description="A logical folder that is used to organize project items and elements." moniker="">
+							<references>
+								<ref key="{8B6D2D96-6C0A-42F3-B293-5A2E7DCB1D2E}" />
+								<ref key="{838E41FB-189D-4437-985E-CC84F690FE2D}" />
+								<ref key="{D7902767-B486-4F45-896B-A55D7650F901}" />
+								<ref key="{D9AA5068-F778-4D7D-89B4-6073600C8043}" />
+								<ref key="{46E82EF3-FF9B-42B1-98D1-3028B1680BB5}" />
+								<ref key="{991F3D5E-1350-42B8-BB13-47E48A5E4AE3}" />
+								<ref key="{9CA5396B-6B59-475B-BBDB-B2531F7667E4}" />
+								<ref key="{9929154E-6BBD-486D-87C4-DFE4A9593287}" />
+								<ref key="{8F7ED85B-EA26-4953-A358-2586C88FE108}" />
+								<ref key="{B8394D5D-A2AC-4945-9BD4-ABBF0359EEEB}" />
+								<ref key="{8C1739E7-2033-49E0-9EE5-1781AB7D28FD}" />
+								<ref key="{87A5A559-EE20-4E3A-A2DD-0193D38D9207}" />
+								<ref key="{7457664D-BD58-4564-BF18-E456A62D61F9}" />
+								<ref key="{E6D287FE-ABE0-48B9-8079-D272435DD845}" />
+							</references>
+						</folder>
+						<folder caption="Other Tests" description="A logical folder that is used to organize project items and elements." moniker="">
+							<references>
+								<ref key="{85FADD4F-DA00-4B9A-8067-105067DFAD95}" />
+								<ref key="{69B009D7-9F93-42DD-954B-64B7D2126E6F}" />
+							</references>
+						</folder>
+					</folders>
+				</folder>
+				<folder caption="Z_Storage" description="A logical folder that is used to organize project items and elements." moniker="">
+					<references>
+						<ref key="{A634C4AC-F5E3-4E2A-A844-6557BE290820}" />
+						<ref key="{3486E468-6BF5-4313-AEA2-3C441C67A1FC}" />
+					</references>
+				</folder>
+			</folders>
+		</folder>
+	</folders>
 </Root>

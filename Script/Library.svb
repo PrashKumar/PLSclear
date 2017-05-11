@@ -1,151 +1,579 @@
-﻿
+﻿  'USEUNIT LIBRARY
+  'USEUNIT LIBRARY_REQUESTMANAGER
+  'USEUNIT LIBRARY_TITLEMANAGER
+  
 
-''####################################################### Function to launch PLSclear on browser ##########################
+  ''################################################################################################################################
+  ''############################################# Function to call data from excel sheet (DDT)
+  ''## The below function is used in the scripts to call test data from the excel spreadsheet.
+  Function GetDataFromExcel(excelPath,sheetName,i,j)
+    Set objExcel = Sys.OleObject("Excel.Application")
+    objExcel.Visible = False
+    objExcel.Workbooks.Open(excelPath)
+    Set ExcelRange = objExcel.Worksheets(sheetName).UsedRange
+    getExlValue = ExcelRange.Cells(i,j).Value
+    GetDataFromExcel = getExlValue
+    Set objExcel = Nothing
+  End Function
 
+
+  ''###################################################################################################################################
+  ''####################################################### Function to launch PLSclear on browser ##########################
+  '# Below function open a browser instance and then launches pls website on it .It checks for browser and PLS URL on it first before instantiating the action.
+  
   Function Launch_PLSclear(browserVal,urlVal)
   Dim browser
   Dim page
-  Set browser = Sys.Find("ProcessName",browserVal,5)
+  Set browser = Sys.FindChild("ProcessName",browserVal,1)
+  'Initial check for existing browser
   If browser.Exists then
-    Set page = browser.Find("URL","*pls*",10)
+    Set page = browser.FindChild("URL","*pls*",1)
+    'If browser exists the 'if' condition checks if page url has '*pls*' string in it. If pls string in url exists is 'false' then script
+    ' navigates the browser to pls url. 
     If page.Exists = False then
       Call browsers.Item(browserVal).Run(urlVal)
-      Sys.browser(browserVal).page(urlVal).Wait
-      Set browser = Sys.Find("ProcessName",browserVal,5)
+      Set browser = Sys.FindChild("ProcessName",browserVal,1)
     Else
+      ' If pls string in url exists is true then message is shown as plsclear is already open' and exits the function.
       Log.Message("PLSclear was already open")
     End If
   Else
+    ' If initiall check for browser exists = false then browser is opened and pls url is launched.
     Call browsers.Item(browserVal).Run(urlVal)
-    Sys.browser(browserVal).page(urlVal).Wait
-    Set browser = Sys.Find("ProcessName",browserVal,5)
-    Set page = browser.Find("URL","*pls*",10)
-    Log.Message(urlVal &" was launched on "& browserVal &" browser")
+    Set browser = Sys.FindChild("ProcessName",browserVal,1)
+    Set page = browser.FindChild("URL","*pls*",1)
   End If
   End Function
   
-  ''####################### Function to login ######################################
+  ''########################################################################################################
+  ''####################### Function to login ##############################################################
+  '# Below function finds the log off link object first and if it exists, sign out is done before signing in. After click on signin button
+  '# delay is included to allow for any validation errors to appear. 
   
-  Function Login(browserVal,usernameVal,passwordVal)
-    Set browser = Sys.Find("ProcessName",browserVal,5)
-    Set page = browser.Find("URL","*pls*",10)
-    Set logOffLnk = page.Find(Array("idStr","VisibleOnScreen"),Array("ctl00_MenuLogin_LoginView1_LoginStatus1",True),20)
-    If logOffLnk.Exists then
-      Call logOffLnk.Click
-      Log.Message("Application was in Logged In status")
-      Delay(2000)
-    End If
-    Set usernameTxtbox = page.FindChild(Array("idStr","VisibleOnScreen"),Array("ctl00_txtUsername",True),20)
-    If usernameTxtbox.Exists then
-      Set passwordTxtbox = page.FindChild(Array("idStr","VisibleOnScreen"),Array("ctl00_txtPassword",True),20)
-      Set signinBtn = page.FindChild(Array("idStr","VisibleOnScreen"),Array("ctl00_btnLogin",True),20)
-      Call usernameTxtbox.SetText(usernameVal)
-      Call passwordTxtbox.SetText(passwordVal)
-      Call signinBtn.Click
-      Delay(1000)
-      Call page.Refresh
-      Set usernameTxtbox = page.Find(Array("idStr","VisibleOnScreen"),Array("ctl00_txtUsername",True),20)
+  Function Login(browserVal,usernameVal,passwordVal,expectedresultVal,stoponfailVal)
+    '# parameter examples: usernameVal = "username", passwordVal = "password", expectedresultVal = "pass" or "fail", stoponfailVal = "stop" or "proceed"
+    folderlogin = Log.CreateFolder("Login function")
+    Log.PushLogFolder(folderlogin)
+    Set browser = Sys.FindChild("ProcessName",browserVal,1)
+    Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),1)
+    'Looks for 'Log Off' button. If log off button exists, then clicks on it to end the login session.
+    Call LogOut(browserVal)
+    Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),1)
+    'set username input in the username textbox
+    Set usernameTxtbox = page.FindChild(Array("ObjectIdentifier","VisibleOnScreen"),Array("txtUsername",True),14)
+    Do 
       If usernameTxtbox.Exists then
-        Log.Error("Sign in Unsuccessful")
-        Call runner.stop
+        Exit Do
       Else
-        Log.Message("Sign in was Successful")
+        Set usernameTxtbox = page.FindChild(Array("ObjectIdentifier","VisibleOnScreen"),Array("txtUsername",True),14)
       End If
-    Else
-      Log.Message("Login task was skipped")
+    Loop 
+    Call usernameTxtbox.SetText(usernameVal)
+    'clicks on 'Manage your title' header on usernametxtbox to refresh the usernametextbox status, in case it had error on previous session
+    Set logintitle = page.FindChild(Array("className","VisibleOnScreen"),Array("loginFormContainerTitle",True),20)
+    If logintitle.Exists then
+      Call logintitle.Click
+    End If
+    'set password input in the password textbox if passwordtextbox is not hidden (by design passwordtextbox will be hidden if username is invalid)
+    Set passwordTxtbox = page.FindChild(Array("ObjectIdentifier","VisibleOnScreen"),Array("txtPassword",True),15)
+    If passwordTxtbox.Exists then
+      Call passwordTxtbox.SetText(passwordVal)
+    End If
+    'clicks on submit button if not hidden (by design submitbutton is hidden if username is invalid)
+    Set submitbtn = page.FindChild(Array("ObjectIdentifier","VisibleOnScreen"),Array("btnLogin",True),15)
+    If submitbtn.Exists then
+      Call submitbtn.Click
+    End If
+    Call Delay(2000)
+    'checks for appearance of validation error if user credentials are invalid
+    Set validationerror = page.FindChild(Array("className","VisibleOnScreen"),Array("*error*",True),20)
+    ' Below condition is to show error in logs based on expected result for given inputs
+    If expectedresultVal = "pass" then
+      If  validationerror.Exists then
+        Log.Warning("Login Failed for USERNAME: "& usernameVal &", PASSWORD: "& passwordVal&". Error Shown")
+        'stoponfailVal terminates the test if login result is not expected. For login tests use 'proceed', for all other tests use 'stop'
+        If stoponfailVal = "stop" then
+          Log.Warning("Runner.Stop used to terminate the Test run as the test cannot proceed further on Login failure")
+          Call Runner.Stop
+        ElseIf stoponfailVal = "proceed" then
+          Log.Message("Test continued as the stoponfailVal is set to 'proceed'")
+        End If
+      Else
+        Log.Checkpoint("Login Sucessful with USERNAME = "& usernameVal &", PASSWORD = "& passwordVal&". Error Not Shown")
+      End If
+    ElseIf expectedresultVal = "fail" then
+      If  validationerror.Exists = False then
+        Log.Warning("Login Test Failed for USERNAME: "& usernameVal &", PASSWORD: "& passwordVal&". Error Not Shown")
+      Else
+        Log.Checkpoint("Login Succesful with USERNAME: "& usernameVal &", PASSWORD: "& passwordVal&". Error Shown")
+      End If
+    End If
+    Log.PopLogFolder()
+  End Function
+  
+  ''########################################################################################################################
+  ''########################################################################################################################
+  Function LogOut(browserVal)
+    Set browser = Sys.FindChild("ProcessName",browserVal,1)
+    Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),1)
+    'Looks for 'Log Off' button. If log off button exists, then clicks on it to end the login session.
+    'The below condition for logoff link is due to two different object properties of Loggoff links in various pages on plsclear
+    Set logOffLnk1 = page.FindChild(Array("idStr","Visible"),Array("*LoginStatus1",True),10)
+    Set logOffLnk2 = page.FindChild(Array("idStr","Visible"),Array("ctl00_Logout",True),10)
+    If logOffLnk1.Exists then
+      Call logOffLnk1.Click
+      Log.Message("LogOff button clicked.")
+      Delay(1000)
+      '# Close Additional dialogue (Do you want to leave this site?) that comes up when previous request session is to be aborted
+      Set confirmdialog = page.FindChild(Array("Name","VisibleOnScreen"),Array("Confirm",True),2)
+      If confirmdialog.Exists then
+        Call confirmdialog.Button("OK").Click
+      End If
+    ElseIf logOffLnk2.Exists then
+      Call logOffLnk2.Click
+      Log.Message("LogOff button clicked.")
+      Delay(1000)
+      '# Close Additional dialogue (Do you want to leave this site?) that comes up when previous request session is to be aborted
+      Set confirmdialog = page.FindChild(Array("Name","VisibleOnScreen"),Array("Confirm",True),2)
+      If confirmdialog.Exists then
+        Call confirmdialog.Button("OK").Click
+      End If
     End If
   End Function
   
-  ''##################### Alert dialog: Click on 'Yes' or 'No' ######################
+  ''###########################################################################################################################
+  ''########################################## Function to wait for the object until it exists or until timeout provided.
+    Sub PLS_Delay(browserVal,objName)
+    ' objName = object for which test complete waits for to exist, visible and Enabled.
+    Set browser = Sys.FindChild("ProcessName",browserVal,1)
+    Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),1)
+    Do 
+      If page.Exists then
+        Exit Do
+      End If
+    Loop
+    Do
+      If page.Enabled then
+        Exit Do
+      End If
+    Loop
+    Do 
+      If Not objName is Nothing then
+        Exit Do
+      End If
+    Loop 
+    Do
+      If objName.Width <> 0 then
+        Exit Do
+      End If
+    Loop
+    Do
+      If objName.Enabled then
+        Exit Do
+      End If
+    Loop
+   End Sub
+
+  ''##################
+  Sub fn_waitforobject(browserVal,objName,timeout)
+    ' objName = object name for which test engine waits for to exist.
+    ' timeout = seconds input as integer that denotes the time the execution waits until before proceeding to next step
+    Set browser = Sys.FindChild("ProcessName",browserVal,1)
+    Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),1)
+    sTime = aqdatetime.Time
+    Do
+      Call aqUtils.Delay(50)
+      Call page.Refresh
+    Loop Until Not objName is Nothing Or aqdatetime.Time > aqdatetime.AddSeconds(sTime,timeout)
+    sTime = aqdatetime.Time
+    Set browser = Sys.FindChild("ProcessName",browserVal,1)
+    Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),1)
+    Do
+      Call aqUtils.Delay(50)
+      Call page.Refresh
+    Loop Until objName.Width <> 0 Or aqdatetime.Time > aqdatetime.AddSeconds(sTime,timeout)
+  End Sub
+
+  ''######################################################################################################################
+  ''##################### Alert dialog: Click on 'Yes' or 'No' ##########################################################
   
   Function ActionOnAlertDialog(browserVal,alertactionVal)
-  Set browser = Sys.Find("ProcessName",browserVal,5)
-   Set page = browser.Find(Array("URL","Visible"),Array("*pls*",True),10)
-   Set alertdialog_o = page.FindChild(Array("className","VisibleOnScreen"),Array("ui-dialog ui-widget ui-widget-content ui-corner-all ui-draggable ui-resizable",True),5)
+   Set browser = Sys.FindChild("ProcessName",browserVal,1)
+   Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),1)
+   'alert dialog is shown if user wants to start new request while in the middle of previous incomplete request. alertactionVal decides
+   ' whether to restart the request (option: Yes) or to continue with the old request(option: No). 
+   Set alertdialog_o = page.FindChild(Array("className","VisibleOnScreen"),Array("ui-dialog ui-widget ui-widget-content*",True),5)
    If alertdialog_o.Exists then
      If alertactionVal = "Yes" then
-       Set yesbutton_o = alertdialog_o.Find(Array("ObjectType","contentText"),Array("Button","Yes"),10)
+       Set yesbutton_o = alertdialog_o.FindChild(Array("ObjectType","contentText"),Array("Button","Yes"),10)
        Call yesbutton_o.Click
        Log.Message("Alert dialog appeared. 'Yes' button clicked")
      ElseIf alertactionVal = "No" then
-       Set nobutton_o = alertdialog_o.Find(Array("ObjectType","contentText"),Array("Button","No"),10)
+       Set nobutton_o = alertdialog_o.FindChild(Array("ObjectType","contentText"),Array("Button","No"),10)
         Log.Message("Alert dialog appeared. 'No' button clicked")
      Else
         Log.Error("Alert dialog action buttons not found. Check parameters provided and properties of the buttons")
      End If
    End If
    End Function
-  ''###################### Function to Search Before Login ###########################
-  
-  Function SearchTitle(browserVal,searchtypeVal,searchVal)
-    Set browser = Sys.Find("ProcessName",browserVal,5)
-    Set page = browser.Find("URL","*pls*",10)
-    Set makeapermissionsrequestlnk = page.FindChild(Array("ObjectType","contentText","VisibleOnScreen"),Array("Link","Make a permissions request",True),20)
-    If makeapermissionsrequestlnk.Exists Then 
-      Call makeapermissionsrequestlnk.Click
-    End If
-    Delay 1000
-    Set searchbarcontainer = page.FindChild(Array("idStr","VisibleOnScreen"),Array("searchBarContainer",True),20)
-    If searchbarcontainer.Exists = False Then
-      Log.Warning("SearchBar container Not found")
-    ElseIf searchbarcontainer.Exists Then
-      Set searchTypeSelector = searchbarcontainer.Find("className","searchTypeSelector",10)
-      Call searchTypeSelector.ClickItem(searchtypeVal)
-      Call searchbarcontainer.Find("idStr","keywords",5).SetText(searchVal)
-      Log.Message("Search made for: "& searchVal)
-      Call searchbarcontainer.Find("idStr","searchButton",5).Click
+   
+   ''##########################################################################################################################
+   ''######################### Function to delay test progress until page load image (load150 img object)exists ##############
+   Function DelayUntilLoad150(browserVal)
+     'Below script loops the delay until the 'page loading image (load150) disappears.
+     'Used after page navigations and request send button clicks
+     Set browser = Sys.FindChild("ProcessName",browserVal,1)
+     Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),1)
+     Call page.WaitProperty("VisibleOnScreen",True,2000)
+     Do 
+       Set loaderimg = page.FindChild("id","load150",10)
+       If loaderimg.Exists then
+         If loaderimg.VisibleOnScreen then
+           Call Delay(500)
+         Else
+           Exit Do 
+         End If
+       Else
+         Exit Do
+       End If
+       Set browser = Sys.FindChild("ProcessName",browserVal,1)
+       Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),1)
+       Set loaderimg = page.FindChild("id","load150",10)
+     Loop
+   End Function 
+   ''###########################################################################################################################
+   ''##################################### Page Navigation Function ############################################################
+   '# Below script navigates the page using the 'navigateToVal' input value provided. (example: navigateToVal = "Request Manager")
+   '# The Delays and page references at the end of the script is because the TC loses the page and browser reference after the page reload 
+   'occurs due to navigation
+   '# The below script issues warning message if wrong input value for page name is provided
+   Function NavigateToPage(browserVal,navigateToVal)
+    Set browser = Sys.FindChild("ProcessName",browserVal,1)
+    Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),1)
+    Call browser.WaitChild("page",3000)
+    If navigateToVal = "Home" Or navigateToVal = "Request Manager" Or navigateToVal = "Reports" then
+      Set navigationtab = page.FindChildByXPath("//a[contains(.,'"& navigateToVal &"')]")
       Do 
-        Call Delay(100)
-        Call page.Refresh
-        Set pageloading_img = page.FindChild("idStr","load150",20)
-      Loop Until Pageloading_img.Exists = True
+      If navigationtab.Exists then
+        Exit Do
+      Else
+        Set navigationtab = page.FindChildByXPath("//a[contains(.,'"& navigateToVal &"')]")
+      End If
+      Loop 
+      Call navigationtab.Click
+      Log.Message("Navigated to '"& navigateToVal)
+    ElseIf navigateToVal = "Programme Manager" then
+      Set titlemanagertab = page.FindChildByXPath("//a[contains(.,'Title Manager')]")
+      Do 
+      If Not titlemanagertab is Nothing then
+        Exit Do
+      Else
+        Set titlemanagertab = page.FindChildByXPath("//a[contains(.,'Title Manager')]")
+      End If
+      Loop 
+      Call titlemanagertab.HoverMouse
+      Set navigationtab = page.FindChildByXPath("//a[contains(.,'"& navigateToVal &"')]")
+      Call navigationtab.Click
+      Log.Message("Navigated to '"& navigateToVal)
+    Else
+      Log.Warning("Automation script failed to recognise the navigation tab based on the value '"& navigateToVal &"' provided. Recheck the input parameter")
+    End If
+   End Function
+   
+  ''###########################################################################################################################
+  ''###################### Function to Search Before Login ####################################################################
+    '# Search function clicks on hometab button first to navigate to homepage. If confirm dialog appears(dialog which appears if hometab 
+    '# is clicked while in the middle of making a request) 'ok' button is clicked. the browser and page reference is repeated after confirm
+    '# dialog as  the page is recreated in the object browser of test complete. 
+  Function SearchTitle(browserVal,searchtypeVal,searchVal)
+    Set browser = Sys.FindChild("ProcessName",browserVal,1)
+    Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),1)
+    Call Delay(2000)
+    ''## Navigates to 'home' tab before starting the search process
+    Set hometab = page.FindChildByXPath("//a[contains(.,'Home')]")
+    Do 
+      If hometab.Exists then
+        Exit Do
+      Else
+        Set hometab = page.FindChildByXPath("//a[contains(.,'Home')]")
+      End If
+    Loop 
+    Do 
+      If hometab.Enabled then
+        Exit Do
+      Else
+        Set hometab = page.FindChildByXPath("//a[contains(.,'Home')]")
+      End If
+    Loop 
+    Call hometab.Click
+    Call delay(1000) 'for page to reload
+    '## Alert dialog should be closed if it appears
+    Call ActionOnAlertDialog(browserVal,"Yes")
+    ' cofirm dialog that appears if previous request making was incomplete
+    Set confirmdialog = page.FindChild("Name","Confirm",2)
+    If confirmdialog.Exists then
+      Call confirmdialog.Button("OK").Click
+    End If
+    'Make permissions request
+    Set makeapermissionsrequestbtn = page.FindChild("className","switchRoleBtn Publisher",30)
+    If makeapermissionsrequestbtn.Exists then
+      If makeapermissionsrequestbtn.VisibleOnScreen then
+        Call makeapermissionsrequestbtn.Click
+      End If
+    End If
+    ' selects the search type from the dropdown on search bar
+    Call Delay(2000)
+    Set searchTypeSelector = page.FindChildByXPath("//SELECT[@class='searchTypeSelector']")
+    Do 
+      If Not searchTypeSelector is Nothing then
+        Exit Do
+      Else
+        Set searchTypeSelector = page.FindChildByXPath("//SELECT[@class='searchTypeSelector']")
+      End If
+    Loop 
+    Do 
+      If searchTypeSelector.Enabled then
+        Exit Do
+      Else
+        Set searchTypeSelector = page.FindChildByXPath("//SELECT[@class='searchTypeSelector']")
+      End If
+    Loop 
+    Call searchTypeSelector.ClickItem(searchtypeVal)
+    ' Keys the inout value in search box
+    Call page.FindChildByXPath("//input[@id='keywords']").SetText(searchVal)
+    Log.Message("Search made for: "& searchVal)
+    'click search button
+    Call page.FindChildByXPath("//input[@id='searchButton']").Click
+  End Function
+  
+  ''#############################################################################################################################
+  ''#####################  Function to Select the title from the Search Results ########
+  '# The below function finds resultVal which can be similar to searchVal in the results table and is then clicked for selection.
+  '# The isn value for the selected title is stored as isnVal. This stored isnVal should be equal to isn value of the new request that 
+  '# appears in the programme manager when request process is completed
+  
+  Function SelectSearchResult(browserVal,resultVal,isnVal)
+    Log.Message("Function SelectSearchResult")
+    Set browser = Sys.FindChild("ProcessName",browserVal,1)
+    Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),1)
+    Call Delay(1000)
+    Call DelayUntilLoad150(browserVal)
+    'Insert delay if TC fails to identify resultstable. There is some lag in finding the resultstable after search.
+    Set resultstable = page.FindChild("idStr","resultsall",20)
+    Do 
+      If resultstable.Exists then
+        Exit Do
+      Else
+        Set resultstable = page.FindChild("idStr","resultsall",20)
+      End If
+    Loop 
+    Call resultstable.WaitProperty("VisibleOnScreen",True,3000)
+    If resultstable.Exists then
+      If resultstable.VisibleOnScreen then
+        If resultstable.FindChild(Array("ObjectType","contentText"),Array("Cell",resultVal),3).Exists then
+          Set cellx = resultstable.FindChild(Array("ObjectType","VisibleOnScreen","contentText"),Array("Cell",True,resultVal),3)
+          Set isnCell = resultstable.FindChild(Array("ObjectType","RowIndex","ColumnIndex"),Array("Cell",cellx.RowIndex,"0"),3)
+          isnVal = isnCell.contentText
+          selectedformattype = resultstable.FindChild(Array("ObjectType","RowIndex","ColumnIndex"),Array("Cell",cellx.RowIndex,"5"),3).contentText
+          Log.Message(cellx.contentText &" was clicked for selection")
+          cellx.Click
+        Else
+          Log.Error(resultVal &" not found")
+        ' if result title not found in the table, the test is aborted
+          Call Runner.Stop
+        End If
+      End If
+    Else
+      Log.Error("'resulstable' not found")
+      Call Runner.Stop
     End If
   End Function
   
-  ''#####################  Function to Select the title from the Search Results ########
-  
-  Function SelectSearchResult(browserVal,resultVal)
-    Set browser = Sys.Find("ProcessName",browserVal,5)
-    Set page = browser.Find("URL","*pls*",10)
-    Set resultstable = page.Find(Array("ObjectIdentifier","ObjectType"),Array("resultsall","Table"),25)
-    For i = 0 to resultstable.ChildCount-1 
-      If resultstable.Find(Array("ObjectType","contentText"),Array("Cell",resultVal),2).Exists then
-        cellx = resultstable.FindAllChildren(Array("ObjectType","contentText"),Array("Cell",resultVal),2)
-        If cellx(i).contentText = resultVal then
-          selectedformattype = resultstable.FindChild(Array("ObjectType","RowIndex","ColumnIndex"),Array("Cell",cellx(i).RowIndex,"5"),2).contentText
-          Log.Message(cellx(i).contentText &" was clicked for selection")
-          cellx(i).Click
-    Exit For
-        ElseIf cellx(i).contentText <> resultVal And i = resultstable.ChildCount-1 then
-          Log.Error(resultVal &" not found")
-        End If
-      Else
-        Log.Error(resultVal &" not found in the Results. Execution stopped")
-        Call Runner.Stop
-      End If
-    Next
-  End Function
-  
+  ''##########################################################################################################################
   ''###################### Function to set parameters on 'Select Content' page
+  '# If condition is used in the below script because appearance of 'article' or 'chapter' counters is based on type of search result selected
   
   Function SelectContent(browserVal,textextractVal,poemVal,illustrationVal,tableVal,articleVal)
-    Set browser = Sys.Find("ProcessName",browserVal,5)
-    Set page = browser.Find(Array("URL","Visible"),Array("*pls*",True),10)
+    Log.Message("Function SelectContent")
+    Set browser = Sys.FindChild("ProcessName",browserVal,1)
+    Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),1)
     Set step1panel = page.FindChild(Array("idStr","VisibleOnScreen"),Array("step-1",True),30)
     Call step1panel.FindChild(Array("idStr","VisibleOnScreen"),Array("prose_counter",True),30).SetText(textextractVal)
     Call step1panel.FindChild(Array("idStr","VisibleOnScreen"),Array("poetry_counter",True),30).SetText(poemVal)
     Call step1panel.FindChild(Array("idStr","VisibleOnScreen"),Array("illustration_counter",True),30).SetText(illustrationVal)
     Call step1panel.FindChild(Array("idStr","VisibleOnScreen"),Array("table_counter",True),30).SetText(tableVal)
+    'The condition below is due to selective display of article or chapter parameters by plsclear. 
+    'Either one from the below is displayed on the PLS Clear screen depending on the format type of the title selected
     If step1panel.FindChild(Array("idStr","VisibleOnScreen"),Array("article_counter",True),30).Exists then
       Call step1panel.FindChild(Array("idStr","VisibleOnScreen"),Array("article_counter",True),30).SetText(articleVal)
     ElseIf step1panel.FindChild(Array("idStr","VisibleOnScreen"),Array("chapter_counter",True),30).Exists then
       Call step1panel.FindChild(Array("idStr","VisibleOnScreen"),Array("chapter_counter",True),30).SetText(articleVal)
     End If
+    ' click on 'Next' button
     Call page.FindChild("className","buttonNext",30).Click
   End Function
   
-  ''######################## Function to set 'Details of Content' 
-  Function DetailsOfContent()
+  
+  ''#############################################################################################################################
+  ''############################## Function to set 'Details of Content' using only Mandatory fields (Use this for quick test)
+  ''# Use other 'Details of Content' function if all the parameters are to be given with input values.
+    ''########################################################################################################
+   Dim DetofContentParamsArr
+   DetofContentParamsArr = Array(browserVal,noofwordsVal,pagenoVal,nameofthepoemVal,reproductioncolourVal,reproductionsizeVal,figurenumber_titleVal,pagenumberVal,pagerangeVal,issuedateVal,yearofpublicationVal,areyouauthorVal,reuseprojectswitchVal)
+   
+  Function Details_of_Content_MandatoryParameters(DetofContentParamsArr)                                              
+    Log.Message("Function: Details_of_Content_MandatoryParameters")
+    Set browser = Sys.FindChild("ProcessName",browserVal,1)
+    Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),1)
+    Set step2panel = page.FindChild(Array("idStr","VisibleOnScreen"),Array("step-2",True),20)
+    Set extractsAccordion = step2panel.FindChild("idStr","extractsAccordion",10)
+    For i = 0 to extractsAccordion.wItemCount-1
+    '# Expands the nodes and gives input values based on parameter labels that are displayed under that node. The node expansion is looped.
+    Call extractsAccordion.ExpandItem(i)
+    Log.Message("'"& extractsAccordion.wItem(i) &"' Expanded")
+    Set resourcepanel_o = extractsAccordion.FindChild(Array("ObjectIdentifier","innerHTML"),Array("resource*","*accordion-content-active*"),10)
+       'Checks the existence of each of the below parameter labels and if parameter exists, the input value is provided, else skips.
+       ''####  TEXT   TEXT   TEXT   TEXT 
+         '# issue date
+         Set issuedate =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_issue_date",True),10)
+         If issuedate.Exists then
+           If issuedate.clientHeight <> 0 then
+             If issuedate.VisibleOnScreen = False then
+             issuedate.scrollIntoView(1)
+             End If
+             issuedate.SetText(issuedateVal)
+             Log.Message("'IsseDate' value set as: "& issuedateVal)
+           End If
+         End If
+         '# No. of words in extract
+          Set noofwords =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_no_of_words",True),10)
+          If noofwords.Exists then
+            If noofwords.clientHeight <> 0 then
+              noofwords.scrollIntoView(1)
+              noofwords.Keys("^a" & "[Del]"& noofwordsVal)
+              Log.Message("'No. of words' value set as: "& noofwordsVal)
+            End If
+          End If
+          '# page Range
+          Set pageno =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_page_no",True),10)
+          If pageno.Exists then
+            If pageno.clientHeight <> 0 then
+              If pageno.VisibleOnScreen = False then
+                pageno.scrollIntoView(1)
+              End If
+              pageno.Keys("^a" & "[Del]"& pagenoVal)
+              Log.Message("'Page Range' value set as: "& pagenoVal)
+            End If
+          End If
+          
+          ''###   POEM
+          Set resourcepanel_o = extractsAccordion.FindChild(Array("ObjectIdentifier","innerHTML"),Array("resource*","*accordion-content-active*"),10)      
+          '# Name of the poem
+          Set nameofthepoem =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_poem_name",True),10)
+          If nameofthepoem.Exists Then
+            If nameofthepoem.VisibleOnScreen = False then
+            nameofthepoem.scrollIntoView(1)
+            End If
+            nameofthepoem.SetText(nameofthepoemVal)
+            Log.Message("'Name of the poem' value set as: "& nameofthepoemVal)
+          End If
+          '# reproduction colour
+          Set reproductioncolour =  resourcepanel_o.FindChild(Array("ObjectType","nextSibling.innerText","Visible"),Array("RadioButton",reproductioncolourVal,True),10)
+          If reproductioncolour.Exists then
+            If reproductioncolour.VisibleOnScreen = False then
+            reproductioncolour.scrollIntoView(1)
+            End If
+            reproductioncolour.Click
+            Log.Message("'Reproduction colour' value set as: "& reproductioncolourVal)
+          End If  
+          '# reproduction size
+          Set reproductionsize =  resourcepanel_o.FindChild(Array("ObjectType","nextSibling.innerText","Visible"),Array("RadioButton",reproductionsizeVal,True),10)
+          If reproductionsize.Exists then
+            If reproductionsize.VisibleOnScreen = False then
+            reproductionsize.scrollIntoView(1)
+            End If
+            reproductionsize.Click
+            Log.Message("'Reproduction size' value set as: "& reproductionsizeVal)
+          End If  
+        ''### TABLE
+        '# Figure number & title/caption
+          Set figurenumber_title =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_table_name",True),10)
+          If figurenumber_title.Exists Then
+            figurenumber_title.scrollIntoView(1)
+            figurenumber_title.SetText(figurenumber_titleVal)
+            Log.Message("'Figure number & title/caption' value set as: "& figurenumber_titleVal)
+          End If
+        ''### ARTICLE/CHAPTER 
+             '# year of publication
+             Set yearofpublication = resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_year_of_publication",True),10)
+             If yearofpublication.Exists then
+               If yearofpublication.VisibleOnScreen = False then
+               yearofpublication.scrollIntoView(1)
+               End If
+               yearofpublication.SetText(yearofpublicationVal)
+               Log.Message("'Year of Publication' value set as: "& yearofpublicationVal)
+             End If
+             '# article title
+             Set articletitle =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_article_title",True),10)
+             If articletitle.Exists Then
+               If articletitle.VisibleOnScreen = False then
+               articletitle.scrollIntoView(1)
+               End If
+               articletitle.SetText(articletitleVal)
+               Log.Message("'Article Title' value set as: "& articletitleVal)
+             End If
+             '# number of words_Article/Chapter
+             Set numberofwords_article = resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_noofwords",True),10)
+             If numberofwords_article.Exists Then
+               If numberofwords_article.VisibleOnScreen = False then
+               numberofwords_article.scrollIntoView(1)
+               End If
+               numberofwords_article.SetText(noofwordsVal)
+               Log.Message("'Number of words_Article/Chapter' value set as: "& noofwordsVal)
+             End If
+              ''# Author?
+            Set areyouauthor1 = resourcepanel_o.FindChild(Array("ObjectType","nextSibling.innerText","Visible"),Array("RadioButton","I am the author",True),10)
+            Set areyouauthor2 = resourcepanel_o.FindChild(Array("ObjectType","nextSibling.innerText","Visible"),Array("RadioButton","I am NOT the author",True),10)
+            If areyouauthor1.Exists then
+              If areyouauthor1.clientHeight <> 0 then
+                If areyouauthor1.VisibleOnScreen = False then
+                  areyouauthor1.scrollIntoView(1)
+                End If
+                If areyouauthorVal = "Yes" And areyouauthor1.wChecked = False then
+                  areyouauthor1.Click
+                ElseIf areyouauthorVal = "No" And areyouauthor2.wChecked = False then
+                  areyouauthor2.Click
+                End If
+                Log.Message("'Are you the Author of the request' value set as: " & areyouauthorVal)
+              End If
+            End If
+        
+     Next
+     ''# Clicks on Continue button
+     Call page.FindChild(Array("className","VisibleOnScreen"),Array("buttonNext",True),20).Click   
+     ''## Re-Use Project Panel if appears .... (Yes for reuse, No for create new project). To Do : Include reuse dropdown)
+    Set reuseprojectswitchpanel = page.FindChild(Array("className","VisibleOnScreen"),Array("contentReuseQuestion collapsed",True),30)
+    If reuseprojectswitchpanel.Exists then
+      If reuseprojectswitchVal = "Yes" then
+        reuseprojectswitchpanel.FindChild(Array("className","contentText","VisibleOnScreen"),Array("usageSwitch","Yes",True),10).Click
+        Log.Message("'Re-Use Project' value set as: "& reuseprojectswitchVal)
+      ElseIf reuseprojectswitchVal = "No" then
+        reuseprojectswitchpanel.FindChild(Array("className","contentText","VisibleOnScreen"),Array("usageSwitch","No",True),10).Click
+        Log.Message("'Re-Use Project' value set as: "& reuseprojectswitchVal)
+      End If
+    End If
+  End Function
+
+
+  ''#######################################################################################################################################
+  ''######################## Function to set 'Details of Content' USING ALL FIELDS '#########################################################################
+  ' All parameters are covered under below function for 'Details of Use'. The downside of this function is it holds 88 parameters _
+  ' to be included in the script. So alternatively use other mandatory fields function which uses only th emandatory fields thus _
+  'reducing the parameters to 10. Keep the function (just in case).
+  
+  DetailsOfContent1Arr = Array(browserVal,contentsourceVal1, issuedateVal1, issuenumberVal1, issueurlVal1, articletitleVal1, noofwordsVal1, pagenoVal1, identifierVal1, isthisacompletearticleVal1, authorval1, areyouauthorVal1, additionalinformationVal1, willyoubealertingthetextVal1, fulldetailsaboutheadaptionVal1,nameofthepoemVal1,nameofpoetVal1,areyouauthorVal1,identifierVal1,istheextractacompletepoemVal1,nooflinesVal1,additionalinformationVal1,willyoubealertingthetextVal1,fulldetailsaboutheadaptionVal1,contentsourceVal1issuedateVal1,issuenumberVal1,issueurlVal1,articletitleVal1figurenumber_titleVal1,nameofillustratorVal1,areyoutheauthorofthisworkVal1,pagenumberVal1,positiononpageVal1,additionalinformationVal1,reproductioncolourVal1, reproductionsizeVal1,positioningVal1, willyoubealertingtheimageortextVal1, willitbecroppedVal1,fulldetailsofhowitwillbealteredVal1,figurenumber_titleVal1, areyoutheauthorofthisworkVal1,tableVal1,pagenumberVal1, additionalinformationVal1, willyoubealertingtheimageortextVal1, willitbecroppedVal1, fulldetailsofhowitwillbealteredVal1, yearofpublicationVal1,volumenumberVal1,issuenumberVal1, articletitleVal1, articleauthorVal1, areyoutheauthorofthisworkVal1, additionalinformationVal1, pagenumberVal1,numberofwords_articleVal1,willyoubealertingthetextVal1,fulldetailsaboutheadaptionVal1, chapternameVal1,chapternumberVal1numberofwordsVal1,pagerangeVal1, areyoutheauthorofthisworkVal1, additionalinformationVal1, willyoubealertingthetextVal1, fulldetailsaboutheadaptionVal1)
+  
+  Function DetailsOfContent1(DetailsOfContent1Arr)
     searchtypeVal =  "Title Search"
     searchVal = "STUDIO POTTERY"
     resultVal = "STUDIO POTTERY"
@@ -248,11 +676,11 @@
     willyoubealertingtheimageortextVal1 = "True"
     willitbecroppedVal1 = "No"
     fulldetailsabouttheadaptionVal1  = "I am automating it"
-  
-    Set browser = Sys.Find("ProcessName",browserVal,5)
-    Set page = browser.Find(Array("URL","Visible"),Array("*pls*",True),10)
-    Set step2panel = page.FindChild(Array("idStr","VisibleOnScreen"),Array("step-2",True),30)
-    Set extractsAccordion = step2panel.Find("idStr","extractsAccordion",10)
+     
+        Set browser = Sys.FindChild("ProcessName",browserVal,1)
+    Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),1)
+    Set step2panel = page.FindChild(Array("idStr","VisibleOnScreen"),Array("step-2",True),20)
+    Set extractsAccordion = step2panel.FindChild("idStr","extractsAccordion",10)
     For i = 0 to extractsAccordion.wItemCount-1
     '# Expands the node
     Call extractsAccordion.ExpandItem(i)
@@ -263,487 +691,160 @@
      If InStr(extractsAccordion.FindChild("className","*ui-state-active*",10).innerHTML,"extract=""prose""") <> 0 Then
         If selectedformattype = "Serial" Or selectedformattype = "Webdomain" then
           '# Content Source
-          Set contentsource =  resourcepanel_o.FindChild(Array("ObjectType","nextSibling.innerText","Visible"),Array("RadioButton",contentsourceVal1,True),10)
-          If contentsource.Exists then
-            contentsource.scrollIntoView(1)
-            contentsource.Click
-          End If
+          Call DetailsOfUsage_parameterunit(browserVal,"content source",contentsourceVal1)
           '# issue date
-          Set issuedate =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_issue_date",True),10)
-          If issuedate.Exists then
-            issuedate.scrollIntoView(1)
-            issuedate.SetText(issuedateVal1)
-          End If
+          Call DetailsOfUsage_parameterunit(browserVal,"issue date",issuedateVal1)
           '# issue Number
-          Set issuenumber =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_issue_number",True),10)
-          If issuenumber.Exists then
-            issuenumber.scrollIntoView(1)
-            issuenumber.SetText(issuenumberVal1)
-          End If
+          Call DetailsOfUsage_parameterunit(browserVal,"issue number",issuenumberVal1)
           '# issue URL
-          Set issueURL =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_issue_url",True),10)
-          If issueURL.Exists Then
-            issueURL.scrollIntoView(1)
-            issueURL.SetText(issueurlVal1)
-          End If
+          Call DetailsOfUsage_parameterunit(browserVal,"issue URL",issueurlVal1)
           '# article title
-          Set articletitle =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_article_title",True),10)
-          If articletitle.Exists Then
-            articletitle.scrollIntoView(1)
-            articletitle.SetText(articletitleVal1)
-          End If
-         End If
+          Call DetailsOfUsage_parameterunit(browserVal,"article title",articletitleVal1)
+        End If
          '#### Below fields are common for all format types of Text
           '# No. of words in extract
-          Set noofwords =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_no_of_words",True),10)
-          If noofwords.Exists then
-            noofwords.scrollIntoView(1)
-            noofwords.Keys(noofwordsVal1)
-          End If
+          Call DetailsOfUsage_parameterunit(browserVal,"number of words in extract",noofwordsVal1)
           '# page Range
-          Set pageno =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_page_no",True),10)
-          If pageno.Exists then
-            pageno.scrollIntoView(1)
-            pageno.Keys(pagenoVal1)
-          End if
+          Call DetailsOfUsage_parameterunit(browserVal,"page range",pagenoVal1)
           '# identifier/ first few words
-          Set identifier = resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_identifier",True),10)
-          If identifier.Exists then
-             identifier.scrollIntoView(1)
-            identifier.Keys("^a[Del]"&identifierVal1)
-          End If
+          Call DetailsOfUsage_parameterunit(browserVal,"identifier / first few words",identifierVal1)
           '# Is this a complete article
-          Set isthisacompletearticle = resourcepanel_o.FindChild(Array("ObjectType","nextSibling.innerText","Visible"),Array("RadioButton",isthisacompletearticleVal1,True),10)
-          If isthisacompletearticle.Exists Then
-            isthisacompletearticle.scrollIntoView(1)
-            isthisacompletearticle.Click
-          End If
+          Call DetailsOfUsage_parameterunit(browserVal,"Is this a complete article?",isthisacompletearticleVal1)
           '# Author
-          Set author = resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_author",True),10)
-          If author.Exists then
-            author.scrollIntoView(1)
-            author.SetText(authorVal1)
-          End If
+          Call DetailsOfUsage_parameterunit(browserVal,"author",authorVal1)
            '# Are you the author of this work
-          Set areyoutheauthorofthiswork =  resourcepanel_o.FindChild(Array("ObjectType","nextSibling.innerText","Visible"),Array("RadioButton",areyoutheauthorofthisworkVal1,True),10)
-          If areyoutheauthorofthiswork.Exists then
-            areyoutheauthorofthiswork.scrollIntoView(1)
-            areyoutheauthorofthiswork.Click
-          End If
+          Call DetailsOfUsage_parameterunit(browserVal,"Are you the author of the work you are requesting?",areyoutheauthorofthisworkVal1) 
           ''## additional information
-          Set additionalinformation = resourcepanel_o.FindChild(Array("idStr","ObjectType","Visible"),Array("*_other","Textarea",True),10)
-          If additionalinformation.Exists then
-            additionalinformation.scrollIntoView(1)
-            additionalinformation.Keys(additionalinformationVal1)
-          End If 
-          '# will you be alerting the text?
-          Set willyoubealertingthetext =  resourcepanel_o.FindChild(Array("ObjectType","nextSibling.textContent","Visible"),Array("Checkbox","will you be altering the text?",True),10)
-          If willyoubealertingthetext.Exists then
-            willyoubealertingthetext.scrollIntoView(1)
-            willyoubealertingthetext.ClickChecked(willyoubealertingthetextVal1)
-            If willyoubealertingthetextVal1 = "True" then
-            '# full details about the adaption
-              Call resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_adaption_detail",True),10).Keys(fulldetailsabouttheadaptionVal1)   
-            End If
-          End If
+          Call DetailsOfUsage_parameterunit(browserVal,"additional information",additionalinformationVal1)
+         
       ''############## POEM    POEM   POEM   POEM #############################################
-       ElseIf InStr(extractsAccordion.FindChild("className","*ui-state-active*",10).innerHTML,"extract=""poetry""") <> 0 THEN
-      Set resourcepanel_o = extractsAccordion.FindChild(Array("ObjectIdentifier","innerHTML"),Array("resource*","*accordion-content-active*"),10)
-        If selectedformattype = "Serial" Or selectedformattype = "Webdomain" then
-          '# Content Source
-          Set contentsource =  resourcepanel_o.FindChild(Array("ObjectType","nextSibling.innerText","Visible"),Array("RadioButton",contentsourceVal1,True),10)
-          If contentsource.Exists then
-            contentsource.scrollIntoView(1)
-            contentsource.Click
-          End If
+     ElseIf InStr(extractsAccordion.FindChild("className","*ui-state-active*",10).innerHTML,"extract=""poetry""") <> 0 THEN
+          Set resourcepanel_o = extractsAccordion.FindChild(Array("ObjectIdentifier","innerHTML"),Array("resource*","*accordion-content-active*"),10)
+          If selectedformattype = "Serial" Or selectedformattype = "Webdomain" then
+           '# Content Source
+          Call DetailsOfUsage_parameterunit(browserVal,"content source",contentsourceVal1)
           '# issue date
-          Set issuedate =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_issue_date",True),10)
-          If issuedate.Exists then
-            issuedate.scrollIntoView(1)
-            issuedate.SetText(issuedateVal1)
-          End If
+          Call DetailsOfUsage_parameterunit(browserVal,"issue date",issuedateVal1)
           '# issue Number
-          Set issuenumber =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_issue_number",True),10)
-          If issuenumber.Exists then
-            issuenumber.scrollIntoView(1)
-            issuenumber.SetText(issuenumberVal1)
-          End If
+          Call DetailsOfUsage_parameterunit(browserVal,"issue number",issuenumberVal1)
           '# issue URL
-          Set issueURL =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_issue_url",True),10)
-          If issueURL.Exists Then
-            issueURL.scrollIntoView(1)
-            issueURL.SetText(issueurlVal1)
-          End If
+          Call DetailsOfUsage_parameterunit(browserVal,"issue URL",issueurlVal1)
           '# article title
-          Set articletitle =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_article_title",True),10)
-          If articletitle.Exists Then
-            articletitle.scrollIntoView(1)
-            articletitle.SetText(articletitleVal1)
+          Call DetailsOfUsage_parameterunit(browserVal,"article title",articletitleVal1)
           End If
-        End If
           '# Name of the poem
-          Set nameofthepoem =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_poem_name",True),10)
-          If nameofthepoem.Exists Then
-            nameofthepoem.scrollIntoView(1)
-            nameofthepoem.SetText(nameofthepoemVal1)
-          End If
+          Call DetailsOfUsage_parameterunit(browserVal,"name of the poem",nameofthepoemVal1)
           '# Name of Poet
-          Set nameofpoet =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_poet_name",True),10)
-          If nameofpoet.Exists Then
-            nameofpoet.scrollIntoView(1)
-            nameofpoet.SetText(nameofpoetVal1)
-          End If
+          Call DetailsOfUsage_parameterunit(browserVal,"name of poet",nameofpoetVal1)
           '# Are you the author of this work
-          Set areyoutheauthorofthiswork =  resourcepanel_o.FindChild(Array("ObjectType","nextSibling.innerText","Visible"),Array("RadioButton",areyoutheauthorofthisworkVal1,True),10)
-          If areyoutheauthorofthiswork.Exists then
-            areyoutheauthorofthiswork.scrollIntoView(1)
-            areyoutheauthorofthiswork.Click
-          End If
-          '# identifier/ first few words
-          Set identifier =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_identifier",True),10)
-          If identifier.Exists then
-            identifier.scrollIntoView(1)
-            identifier.Keys("^a[Del]"&identifierVal1)
-          End If
+          Call DetailsOfUsage_parameterunit(browserVal,"Are you the author of the work you are requesting?",areyoutheauthorofthisworkVal1)
+          '# identifier/ first few words  identifier / first few words
+          Call DetailsOfUsage_parameterunit(browserVal,"identifier / first few words",identifierVal1)
           '# Is the extract a complete poem
-          Set istheextractacompletepoem = resourcepanel_o.FindChild(Array("ObjectType","nextSibling.innerText","Visible"),Array("RadioButton",istheextractacompletepoemVal1,True),10)
-          If istheextractacompletepoem.Exists Then
-            istheextractacompletepoem.scrollIntoView(1)
-            istheextractacompletepoem.Click
-          End If
+          Call DetailsOfUsage_parameterunit(browserVal,"is the extract a complete poem?",istheextractacompletepoemVal1)
           '# No. of lines in the extract
-          Set nooflines =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_no_of_lines",True),10)
-          If nooflines.Exists then
-            nooflines.scrollIntoView(1)
-            nooflines.SetText(nooflinesVal1)
-          End If
+          Call DetailsOfUsage_parameterunit(browserVal,"number of lines in the extract",nooflinesVal1)
           ''## additional information
-          Set additionalinformation = resourcepanel_o.FindChild(Array("idStr","ObjectType","Visible"),Array("*_other","Textarea",True),10)
-          If additionalinformation.Exists then
-            additionalinformation.scrollIntoView(1)
-            additionalinformation.Keys(additionalinformationVal1)
-          End If 
-          '# will you be alerting the text?
-          Set willyoubealertingthetext =  resourcepanel_o.FindChild(Array("ObjectType","nextSibling.textContent","Visible"),Array("Checkbox","will you be altering the text?",True),10)
-          If willyoubealertingthetext.Exists then
-            willyoubealertingthetext.scrollIntoView(1)
-            willyoubealertingthetext.ClickChecked(willyoubealertingthetextVal1)
-            If willyoubealertingthetextVal1 = "True" then
-            '# full details about the adaption
-              Call resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_adaption_detail",True),10).Keys(fulldetailsabouttheadaptionVal1)   
-            End If
-          End If
+          Call DetailsOfUsage_parameterunit(browserVal,"additional information",additionalinformationVal1)
          
        ''############## ILLUSTRATION  ILLUSTRATION  ILLUSTRATION  ##############################
        ElseIf InStr(extractsAccordion.FindChild("className","*ui-state-active*",10).innerHTML,"extract=""illustration""") <> 0 THEN
-       Set resourcepanel_o = extractsAccordion.FindChild(Array("ObjectIdentifier","innerHTML"),Array("resource*","*accordion-content-active*"),10)
-        If selectedformattype = "Serial" Or selectedformattype = "Webdomain" then
+          Set resourcepanel_o = extractsAccordion.FindChild(Array("ObjectIdentifier","innerHTML"),Array("resource*","*accordion-content-active*"),10)
+          If selectedformattype = "Serial" Or selectedformattype = "Webdomain" then
           '# Content Source
-          Set contentsource =  resourcepanel_o.FindChild(Array("ObjectType","nextSibling.innerText","Visible"),Array("RadioButton",contentsourceVal1,True),10)
-          If contentsource.Exists then
-            contentsource.scrollIntoView(1)
-            contentsource.Click
-          End If
+          Call DetailsOfUsage_parameterunit(browserVal,"content source",contentsourceVal1)
           '# issue date
-          Set issuedate =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_issue_date",True),10)
-          If issuedate.Exists then
-            issuedate.scrollIntoView(1)
-            issuedate.SetText(issuedateVal1)
-          End If
+          Call DetailsOfUsage_parameterunit(browserVal,"issue date",issuedateVal1)
           '# issue Number
-          Set issuenumber =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_issue_number",True),10)
-          If issuenumber.Exists then
-            issuenumber.scrollIntoView(1)
-            issuenumber.SetText(issuenumberVal1)
-          End If
+          Call DetailsOfUsage_parameterunit(browserVal,"issue number",issuenumberVal1)
           '# issue URL
-          Set issueURL =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_issue_url",True),10)
-          If issueURL.Exists Then
-            issueURL.scrollIntoView(1)
-            issueURL.SetText(issueurlVal1)
-          End If
+          Call DetailsOfUsage_parameterunit(browserVal,"issue URL",issueurlVal1)
           '# article title
-          Set articletitle =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_article_title",True),10)
-          If articletitle.Exists Then
-            contentsource.scrollIntoView(1)
-            articletitle.SetText(articletitleVal1)
+          Call DetailsOfUsage_parameterunit(browserVal,"article title",articletitleVal1)
           End If
-        End If
           '# Figure number & title/caption
-          Set figurenumber_title =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_illustration_name",True),10)
-          If figurenumber_title.Exists Then
-            figurenumber_title.scrollIntoView(1)
-            figurenumber_title.SetText(figurenumber_titleVal1)
-          End If
+          Call DetailsOfUsage_parameterunit(browserVal,"figure number & title / caption",figurenumber_titleVal1)
           '# Name of Illustrator
-          Set nameofillustrator =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_illustrator_name",True),10)
-          If nameofillustrator.Exists Then
-            nameofillustrator.scrollIntoView(1)
-            nameofillustrator.SetText(nameofillustratorVal1)
-          End If
+          Call DetailsOfUsage_parameterunit(browserVal,"name of illustrator",nameofillustratorVal1)
           '# Are you the author of this work
-          Set areyoutheauthorofthiswork =  resourcepanel_o.FindChild(Array("ObjectType","nextSibling.innerText","Visible"),Array("RadioButton",areyoutheauthorofthisworkVal1,True),10)
-          If areyoutheauthorofthiswork.Exists then
-            areyoutheauthorofthiswork.scrollIntoView(1)
-            areyoutheauthorofthiswork.Click
-          End If
+          Call DetailsOfUsage_parameterunit(browserVal,"Are you the author of the work you are requesting?",areyoutheauthorofthisworkVal1) 
           '# page number
-          Set pageno =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_page_no",True),10)
-          If pageno.Exists then
-            pageno.scrollIntoView(1)
-            pageno.SetText(pagenumberVal1)
-          End If
+          Call DetailsOfUsage_parameterunit(browserVal,"page number",pagenumberVal1)
            '# Position on page
-          Set positiononpage =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_pos_on_pg",True),10)
-          If positiononpage.Exists Then
-            positiononpage.scrollIntoView(1)
-            positiononpage.SetText(positiononpageVal1)
-          End If
+          Call DetailsOfUsage_parameterunit(browserVal,"position on page",positiononpageVal1)
           ''## additional information
-          Set additionalinformation = resourcepanel_o.FindChild(Array("idStr","ObjectType","Visible"),Array("*_other","Textarea",True),10)
-          If additionalinformation.Exists then
-            additionalinformation.scrollIntoView(1)
-            additionalinformation.Keys(additionalinformationVal1)
-          End If 
+          Call DetailsOfUsage_parameterunit(browserVal,"additional information",additionalinformationVal1) 
           '# reproduction colour
-          Set reproductioncolour =  resourcepanel_o.FindChild(Array("ObjectType","nextSibling.innerText","Visible"),Array("RadioButton",reproductioncolourVal1,True),10)
-          If reproductioncolour.Exists then
-             reproductioncolour.scrollIntoView(1)
-            reproductioncolour.Click
-          End If  
+          Call DetailsOfUsage_parameterunit(browserVal,"reproduction colour",reproductioncolourVal1)
           '# reproduction size
-          Set reproductionsize =  resourcepanel_o.FindChild(Array("ObjectType","nextSibling.innerText","Visible"),Array("RadioButton",reproductionsizeVal1,True),10)
-          If reproductionsize.Exists then
-            reproductionsize.scrollIntoView(1)
-            reproductionsize.Click
-          End If  
+          Call DetailsOfUsage_parameterunit(browserVal,"reproduction size",reproductionsizeVal1)
           '# positioning
-          Set positioning =  extractsAccordion.FindChild(Array("ObjectType","nextSibling.innerText","Visible"),Array("RadioButton",positioningVal1,True),10)
-          If positioning.Exists then
-            positioning.scrollIntoView(1)
-            positioning.Click
-          End If  
-          '# will you be alerting the image or text?
-          Set willyoubealertingtheimageortext =  resourcepanel_o.FindChild(Array("ObjectType","nextSibling.textContent","Visible"),Array("Checkbox","will you be altering the image or text?",True),10)
-          If willyoubealertingtheimageortext.Exists then
-            willyoubealertingtheimageortext.scrollIntoView(0)
-            willyoubealertingtheimageortext.ClickChecked(willyoubealertingtheimageortextVal1)
-            If willyoubealertingtheimageortextVal1 = "True" then
-              ''# will it be cropped
-              If willitbecroppedVal1 = "Yes" then
-                Call resourcepanel_o.FindChild(Array("ObjectType","ObjectIdentifier","Visible"),Array("RadioButton","repo_size",True),10).scrollIntoView(1)
-                Call resourcepanel_o.FindChild(Array("ObjectType","ObjectIdentifier","Visible"),Array("RadioButton","repo_size",True),10).scrollIntoView(1).ClickButton
-              ElseIf willitbecroppedVal1 = "No" then
-                Call resourcepanel_o.FindChild(Array("ObjectType","ObjectIdentifier","Visible"),Array("RadioButton","repo_size_2",True),10).scrollIntoView(1)
-                Call resourcepanel_o.FindChild(Array("ObjectType","ObjectIdentifier","Visible"),Array("RadioButton","repo_size_2",True),10).ClickButton
-              End If  
-              ''# full details of how it will be altered
-              Call resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_adaption2_altered",True),10).Keys(fulldetailsofhowitwillbealteredVal1 )   
-            End If
-          End If
+          Call DetailsOfUsage_parameterunit(browserVal,"positioning",positioningVal1)
      
        ''############## TABLE   TABLE   TABLE   TABLE     TABLE    ##############################
         ElseIf InStr(extractsAccordion.FindChild("className","*ui-state-active*",10).innerHTML,"extract=""table""") <> 0 THEN
-        Set resourcepanel_o = extractsAccordion.FindChild(Array("ObjectIdentifier","innerHTML"),Array("resource*","*accordion-content-active*"),10)
+          Set resourcepanel_o = extractsAccordion.FindChild(Array("ObjectIdentifier","innerHTML"),Array("resource*","*accordion-content-active*"),10)
           If selectedformattype = "Serial" Or selectedformattype = "Webdomain" then
-          '# Content Source
-          Set contentsource =  resourcepanel_o.FindChild(Array("ObjectType","nextSibling.innerText","Visible"),Array("RadioButton",contentsourceVal1,True),10)
-          If contentsource.Exists then
-            contentsource.scrollIntoView(1)
-            contentsource.Click
-          End If
+           '# Content Source
+          Call DetailsOfUsage_parameterunit(browserVal,"content source",contentsourceVal1)
           '# issue date
-          Set issuedate =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_issue_date",True),10)
-          If issuedate.Exists then
-            issuedate.scrollIntoView(1)
-            issuedate.SetText(issuedateVal1)
-          End If
+          Call DetailsOfUsage_parameterunit(browserVal,"issue date",issuedateVal1)
           '# issue Number
-          Set issuenumber =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_issue_number",True),10)
-          If issuenumber.Exists then
-            issuenumber.scrollIntoView(1)
-            issuenumber.SetText(issuenumberVal1)
-          End If
+          Call DetailsOfUsage_parameterunit(browserVal,"issue number",issuenumberVal1)
           '# issue URL
-          Set issueURL =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_issue_url",True),10)
-          If issueURL.Exists Then
-            issueURL.scrollIntoView(1)
-            issueURL.SetText(issueurlVal1)
-          End If
+          Call DetailsOfUsage_parameterunit(browserVal,"issue URL",issueurlVal1)
           '# article title
-          Set articletitle =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_article_title",True),10)
-          If articletitle.Exists Then
-            articletitle.scrollIntoView(1)
-            articletitle.SetText(articletitleVal1)
+          Call DetailsOfUsage_parameterunit(browserVal,"article title",articletitleVal1)
           End If
-        End If
           '# Figure number & title/caption
-          Set figurenumber_title =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_table_name",True),10)
-          If figurenumber_title.Exists Then
-            figurenumber_title.scrollIntoView(1)
-            figurenumber_title.SetText(figurenumber_titleVal1)
-          End If
+          Call DetailsOfUsage_parameterunit(browserVal,"figure number & title / caption",figurenumber_titleVal1)
           '# Are you the author of this work
-          Set areyoutheauthorofthiswork =  resourcepanel_o.FindChild(Array("ObjectType","nextSibling.innerText","Visible"),Array("RadioButton",areyoutheauthorofthisworkVal1,True),10)
-          If areyoutheauthorofthiswork.Exists then
-            areyoutheauthorofthiswork.scrollIntoView(1)
-            areyoutheauthorofthiswork.Click
-          End If
+          Call DetailsOfUsage_parameterunit(browserVal,"Are you the author of the work you are requesting?",areyoutheauthorofthisworkVal1)
           '# table/chart description
-          Set table_chart_desc = resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_table_desc",True),10)
-          If table_chart_desc.Exists then
-            table_chart_desc.scrollIntoView(1)
-            table_chart_desc.SetText(tableVal1)
-          End If
+          Call DetailsOfUsage_parameterunit(browserVal,"table / chart description",tableVal1)
           '# page number
-          Set pageno =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_page_no",True),10)
-          If pageno.Exists then
-            pageno.scrollIntoView(1)
-            pageno.SetText(pagenumberVal1)
-          End If
+          Call DetailsOfUsage_parameterunit(browserVal,"page number",pagenumberVal1)
           ''## additional information
-          Set additionalinformation = resourcepanel_o.FindChild(Array("idStr","ObjectType","Visible"),Array("*_other","Textarea",True),10)
-          If additionalinformation.Exists then
-            additionalinformation.scrollIntoView(1)
-            additionalinformation.Keys(additionalinformationVal1)
-          End If 
-          '# will you be alerting the image or text?
-          Set willyoubealertingtheimageortext =  resourcepanel_o.FindChild(Array("ObjectType","nextSibling.textContent","Visible"),Array("Checkbox","will you be altering the image or text?",True),10)
-          If willyoubealertingtheimageortext.Exists then
-            willyoubealertingtheimageortext.scrollIntoView(0)
-            willyoubealertingtheimageortext.ClickChecked(willyoubealertingtheimageortextVal1)
-            If willyoubealertingtheimageortextVal1 = "True" then
-              ''# will it be cropped
-              If willitbecroppedVal1 = "Yes" then
-                Call resourcepanel_o.FindChild(Array("ObjectType","ObjectIdentifier","Visible"),Array("RadioButton","repo_size",True),10).scrollIntoView(1)
-                Call resourcepanel_o.FindChild(Array("ObjectType","ObjectIdentifier","Visible"),Array("RadioButton","repo_size",True),10).scrollIntoView(1).ClickButton
-              ElseIf willitbecroppedVal1 = "No" then
-                Call resourcepanel_o.FindChild(Array("ObjectType","ObjectIdentifier","Visible"),Array("RadioButton","repo_size_2",True),10).scrollIntoView(1)
-                Call resourcepanel_o.FindChild(Array("ObjectType","ObjectIdentifier","Visible"),Array("RadioButton","repo_size_2",True),10).ClickButton
-              End If  
-              ''# full details of how it will be altered
-              Call resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_adaption2_altered",True),10).Keys(fulldetailsofhowitwillbealteredVal1 )   
-            End If
-          End If
-  
+          Call DetailsOfUsage_parameterunit(browserVal,"additional information",additionalinformationVal1)
+         
        ''############## ARTICLE/CHAPTER  ARTICLE/CHAPTER    ARTICLE/CHAPTER     ARTICLE/CHAPTER  ###############################
        ElseIf InStr(extractsAccordion.FindChild("className","*ui-state-active*",10).innerHTML,"extract=""article""") <> 0 then
            ''## ARTICLE
            Set resourcepanel_o = extractsAccordion.FindChild(Array("ObjectIdentifier","innerHTML"),Array("resource*","*accordion-content-active*"),10)
-           If selectedformattype = "Serial" Or selectedformattype = "Webdomain" then
-             '# year of publication
-             Set yearofpublication = resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_year_of_publication",True),10)
-             If yearofpublication.Exists then
-               yearofpublication.scrollIntoView(1)
-               yearofpublication.SetText(yearofpublicationVal1)
-             End If
-             '# volumenumber
-             Set volumenumber = resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_vol_no",True),10)
-             If volumenumber.Exists then
-               volumenumber.scrollIntoView(1)
-               volumenumber .SetText(volumenumberVal1)
-             End If
-             '# issue Number
-             Set issuenumber =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_issue_number",True),10)
-             If issuenumber.Exists then
-               issuenumber.scrollIntoView(1)
-               issuenumber.SetText(issuenumberVal1)
-             End If
-             '# article title
-             Set articletitle =  resourcepanel_o.indChild(Array("idStr","Visible"),Array("_article_title",True),10)
-             If articletitle.Exists Then
-               articletitle.scrollIntoView(1)
-               articletitle.SetText(articletitleVal1)
-             End If
-             '# Article Author
-             Set author_article = resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_article_author",True),10)
-             If author_article.Exists then
-               author_article.scrollIntoView(1)
-               author_article.SetText(articleauthorVal1)
-             End If
+           'If selectedformattype = "Serial" Or selectedformattype = "Webdomain" then
+            '# year of publication
+            Call DetailsOfUsage_parameterunit(browserVal,"year of publication",yearofpublicationVal1)
+            '# volumenumber
+            Call DetailsOfUsage_parameterunit(browserVal,"volume number", volumenumberVal1)
+            '# issue Number
+            Call DetailsOfUsage_parameterunit(browserVal,"issue number", issuenumberVal1)
+            '# article title
+            Call DetailsOfUsage_parameterunit(browserVal,"title of article",articletitleVal1)
+            '# Article Author
+            Call DetailsOfUsage_parameterunit(browserVal,"author(s)",articleauthorVal1)
              '# Are you the author of this work
-             Set areyoutheauthorofthiswork =  resourcepanel_o.FindChild(Array("ObjectType","nextSibling.innerText","Visible"),Array("RadioButton",areyoutheauthorofthisworkVal1,True),10)
-             If areyoutheauthorofthiswork.Exists then
-               areyoutheauthorofthiswork.scrollIntoView(1)
-               areyoutheauthorofthiswork.Click
-             End If
+            Call DetailsOfUsage_parameterunit(browserVal,"Are you the author of the work you are requesting?",areyoutheauthorofthisworkVal1)
              ''## additional information
-            Set additionalinformation = resourcepanel_o.FindChild(Array("idStr","ObjectType","Visible"),Array("*_other","Textarea",True),10)
-            If additionalinformation.Exists then
-              additionalinformation.scrollIntoView(1)
-              additionalinformation.Keys(additionalinformationVal1)
-            End If 
-             '# page number
-             Set pagenumber =  resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_page_no",True),10)
-             If pagenumber.Exists Then
-               pagenumber.scrollIntoView(1)
-               pagenumber.SetText(pagenumberVal1)
-             End If
-             '# number of words_Article
-             Set numberofwords_article = resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_noofwords",True),10)
-             If numberofwords_article.Exists Then
-               numberofwords_article.scrollIntoView(1)
-               numberofwords_article.SetText(numberofwords_articleVal1)
-             End If
-             '# will you be alerting the text?
-             Set willyoubealertingthetext =  resourcepanel_o.FindChild(Array("ObjectType","nextSibling.textContent","Visible"),Array("Checkbox","will you be altering the text?",True),10)
-             If willyoubealertingthetext.Exists then
-               willyoubealertingthetext.scrollIntoView(1)
-               willyoubealertingthetext.ClickChecked(willyoubealertingthetextVal1)
-               If willyoubealertingthetextVal1 = "True" then
-               '# full details about the adaption
-                 Call resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_adaption_detail",True),10).Keys(fulldetailsabouttheadaptionVal1)   
-               End If
-             End If
-            End If 
-           ElseIf InStr(extractsAccordion.FindChild("className","*ui-state-active*",10).innerHTML,"extract=""chapter""") <> 0 Then
+            Call DetailsOfUsage_parameterunit(browserVal,"page number",additionalinformationVal1)
+            '# page number
+            Call DetailsOfUsage_parameterunit(browserVal,"number of words",pagenumberVal1)
+            '# number of words_Article
+            Call DetailsOfUsage_parameterunit(browserVal,"additional information",numberofwords_articleVal1)
+              'End
+       ElseIf InStr(extractsAccordion.FindChild("className","*ui-state-active*",10).innerHTML,"extract=""chapter""") <> 0 Then
              '## CHAPTER
              '# Chapter Name
-             Set chaptername = resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_chapter_name",True),10)
-             If chaptername.Exists then
-               chaptername.scrollIntoView(1)
-               chaptername.SetText(chapternameVal1)
-             End If
+             Call DetailsOfUsage_parameterunit(browserVal,"chapter name",chapternameVal1)
              '# Chapter Number
-             Set chapternumber = resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_chapter_no",True),10)
-             If chapternumber.Exists then
-               chapternumber.scrollIntoView(1)
-               chapternumber.SetText(chapternumberVal1)
-             End If
+             Call DetailsOfUsage_parameterunit(browserVal,"chapter number",chapternumberVal1)
              '# Number of Words
-             Set numberofwords = resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_noofwords",True),10)
-             If numberofwords.Exists then
-               numberofwords.scrollIntoView(1)
-               numberofwords.SetText(numberofwordsVal1)
-             End If
+             Call DetailsOfUsage_parameterunit(browserVal,"Number of words",numberofwordsVal1)
              '# page Range
-             Set pagerange = resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_page_no",True),10)
-             If pagerange.Exists then
-               pagerange.scrollIntoView(1)
-               pagerange.SetText(pagerangeVal1)
-             End If
+             Call DetailsOfUsage_parameterunit(browserVal,"page range",pagerangeVal1)
              '# Are you the author of this work
-             Set areyoutheauthorofthiswork = resourcepanel_o.FindChild(Array("ObjectType","nextSibling.innerText","Visible"),Array("RadioButton",areyoutheauthorofthisworkVal1,True),10)
-             If areyoutheauthorofthiswork.Exists then
-               areyoutheauthorofthiswork.scrollIntoView(1)
-               areyoutheauthorofthiswork.Click
-             End If
+             Call DetailsOfUsage_parameterunit(browserVal,"Are you the author of the work you are requesting?",areyoutheauthorofthisworkVal1)
              ''## additional information
-             Set additionalinformation = resourcepanel_o.FindChild(Array("idStr","ObjectType","Visible"),Array("*_other","Textarea",True),10)
-             If additionalinformation.Exists then
-               additionalinformation.scrollIntoView(1)
-               additionalinformation.Keys(additionalinformationVal1)
-             End If 
-             '# will you be alerting the text?
-             Set willyoubealertingthetext =  resourcepanel_o.FindChild(Array("ObjectType","nextSibling.textContent","Visible"),Array("Checkbox","will you be altering the text?",True),10)
-             If willyoubealertingthetext.Exists then
-               willyoubealertingthetext.scrollIntoView(1)
-               willyoubealertingthetext.ClickChecked(willyoubealertingthetextVal1)
-               If willyoubealertingthetextVal1 = "True" then
-               '# full details about the adaption
-                 Call resourcepanel_o.FindChild(Array("idStr","Visible"),Array("_adaption_detail",True),10).Keys(fulldetailsabouttheadaptionVal1)   
-               End If
-             End If
+             Call DetailsOfUsage_parameterunit(browserVal,"additional information",additionalinformationVal1)
        End If
     Next
      '# Clicks on Continue button
@@ -758,73 +859,620 @@
         reuseprojectswitchpanel.FindChild(Array("className","contentText","VisibleOnScreen"),Array("usageSwitch","No",True),10).Click
       End If
     End If
+   
   End Function
   
   ''######################################################################################################################################################################
-  ''########################### Function to 'Select Planned Usage'
-  ''#######################################################################################################################################################################
-  Function SelectPlannedUsage(browserVal,usagetypeVal,usagesubtypeVal)
-    Set browser = Sys.Find("ProcessName",browserVal,15)
-    Set page = browser.Find(Array("URL","Visible"),Array("*pls*",True),10)
-    Call page.Refresh
-    '# Regular expression is used in below statement to not select the tree whose clientHeight = 0. If not the TC will look for another hidden tree and the test fails.
-    Set tree = page.Find(Array("idStr","clientHeight"),Array("tree","regexp:[^0]+"),30)
-    
-    ''#### Parent Test node expansion based on the target usagesubtypeVal
-    Set textnodex = tree.FindChildByXPath("//ul/li[contains(.,'"& usagesubtypeVal &"')]//child::p") '# The xpath looks for tag 'p'(textnode) which is the child of parent list element containing usagesubtypeVal
-    If Not textnodex Is Nothing then
-      If textnodex.Visible then '# This condition is to check if the textnode is already expanded and not perform action if it is expanded. If Visible = False then textnode is expanded
-        If textnodex.VisibleOnScreen = False then  '# this condition is to scroll to screen the textnode if it is out of bounds
-          Call textnodex.scrollIntoView(1)
+  ''########################### Function to 'Select Planned Usage'    xxxxxxxxxxxxxxxxxxxxxx 
+  '# This function is used in excel function that will follow next.    
+  ''####################################################################################################################################################################### 
+   Function SelectPlannedUsage(browserVal,usagetypeVal,usagesubtypeVal,reuseprojectswitchVal)
+   ''# pre-conditions: usagetypeVal can be empty value or can be same as usagesubtypeVal but not the wrong parent of usagesubtypeval
+    Log.Message("Function SelectPlannedUsage")
+    Set browser = Sys.FindChild("ProcessName",browserVal,1)
+    Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),1)
+     '# Below is the condition to select the path of the request. If reuseprojectswitchVal is 'Yes' it skips selectplanneduse and Detailsofusage
+     'sections and assign the request to existing project which will be selected fromt the dropdown (reflects in code below)
+    If reuseprojectswitchVal = "Yes" then
+       Set savedprojectscombo = page.FindChild(Array("idStr","VisibleOnScreen"),Array("ddUserProjects",True),25)
+       Call savedprojectscombo.ClickItem(savedprojectVal)
+       Log.Message("Project is reused. Hence, skips Select Planned Use page")
+    ElseIf reuseprojectswitchVal = "No" then
+     Set tree = page.FindChild(Array("idStr","clientHeight"),Array("tree","regexp:[^0]+"),30)
+     '# Loop to expand the textnodes (eg., Book,Journal,Magazine or Academic paper, Online Content or App, etc). Initially checks if target usagetype
+     ' and usagesubtype are visible and if not visible then expands the next loop
+     For i = 0 to 5
+     Set pnode = tree.TextNode(i)
+     '# This checks if required fields are expanded and if expanded, the link is selected
+     '# Below code checks if usagetype is expanded. If not expanded it is scrolled to view and is clicked for its expansion
+     Set usagetype = tree.FindChild(Array("ObjectType","contentText","parentNode.outerHTML","Width"),Array("Link",usagetypeVal,"*dynatree-has-children*","regexp:[^0]+"),10)
+     If usagetype.Exists then
+       If InStr(usagetype.parentNode.outerHTML,"expanded") = 0 Then
+         Call usagetype.scrollIntoView(1)
+         Delay(500)
+         Call usagetype.Click
+         Log.Message("'"& usagetypeVal &"' was expanded.")
+         Call Delay(1000)
+       End If
+     End If
+     '# Below code verifies if usagesubtype is visible on screen and selects it. If not, skips the below step
+     Set usagesubtype = tree.FindChild(Array("contentText","ObjectType","Width"),Array(usagesubtypeVal,"Link","regexp:[^0]+"),10)
+     If usagesubtype.Exists then
+       If InStr(usagesubtype.parentNode.outerHTML, "selected") = 0 then
+         Call usagesubtype.DblClick
+         Log.Message("'"& usagetypeVal &"' - '"& usagesubtypeval &"' selected")
+         Exit For
+       Else
+         Log.Warning(usagetypeVal &" - "& usagesubtypeval &" was Already selected")
+         Exit For
+       End If
+     ElseIf usagesubtype.Exists = False And usagetype.Exists = True And tree.FindChild(Array("ObjectType","Visible"),Array("TextNode",False)).Exists  then
+       Log.Warning("'"& usagesubtypeVal &"' is Not a child node of '"& usagetypeval &"'. Check the provided parameter values.")
+       Exit For
+     End If
+     '# The below is the expansion of node when above step results in not finding the target usagetype and usagesubtype
+     If pnode.VisibleOnScreen then
+       Call pnode.Click
+     End If
+     ''############
+      Set usagetype = tree.FindChild(Array("ObjectType","contentText","parentNode.outerHTML","Width"),Array("Link",usagetypeVal,"*dynatree-has-children*","regexp:[^0]+"),10)
+     If usagetype.Exists then
+       If InStr(usagetype.parentNode.outerHTML,"expanded") = 0 Then
+         Call usagetype.scrollIntoView(1)
+         Delay(500)
+         Call usagetype.Click
+         Log.Message("'"& usagetypeVal &"' was expanded.")
+         Call Delay(500)
+       End If
+     End If
+     '# Below code verifies if usagesubtype is visible on screen and selects it. If not, skips the below step
+     Set usagesubtype = tree.FindChild(Array("contentText","ObjectType","Width"),Array(usagesubtypeVal,"Link","regexp:[^0]+"),10)
+     If usagesubtype.Exists then
+       If InStr(usagesubtype.parentNode.outerHTML, "selected") = 0 then
+         Call usagesubtype.DblClick
+         Log.Message("'"& usagetypeVal &"' - '"& usagesubtypeval &"' selected")
+         Exit For
+       Else
+         Log.Warning(usagetypeVal &" - "& usagesubtypeval &" was Already selected")
+         Exit For
+       End If
+     ElseIf usagesubtype.Exists = False And usagetype.Exists = True And tree.FindChild(Array("ObjectType","Visible"),Array("TextNode",False)).Exists  then
+       Log.Warning("'"& usagesubtypeVal &"' is Not a child node of '"& usagetypeval &"'. Check the provided parameter values.")
+       Exit For
+     End if
+     
+     
+     ''###########
+     '# The loop below is to expand the subnodes under the main nodes(e.g., Book, Article for journal, Thesis, etc) under the Book,Jounal,Magazine Textnode
+     '# Each subnode under main node will be expanded to check for target items  
+       linkx = tree.FindAllChildren(Array("ObjectType","VisibleOnScreen"),Array("Link",True),10)
+       For j = 0 to Ubound(linkx)
+         If InStr(linkx(j).parentNode.outerHTML,"dynatree-exp-c") <> 0 And InStr(linkx(j).parentNode.outerHTML,"dynatree-has-children") <> 0 And linkx(j).Width <> 0 then
+           Call linkx(j).Click
+           '# usagetype if found will be expanded based on its expansion state
+            Set usagetype = tree.FindChild(Array("ObjectType","contentText","parentNode.outerHTML","Width"),Array("Link",usagetypeVal,"*dynatree-has-children*","regexp:[^0]+"),10)
+            If usagetype.Exists then
+            If InStr(usagetype.parentNode.outerHTML,"expanded") = 0 Then
+             Call usagetype.scrollIntoView(1)
+             Call usagetype.Click
+             Log.Message("'"& usagetypeVal &"' was expanded.")
+            End If
+            End If
+            '# usagesubtype is scrolled into view and then selected after parent usagetype expansion
+            Set usagesubtype = tree.FindChild(Array("contentText","ObjectType","Width"),Array(usagesubtypeVal,"Link","regexp:[^0]+"),20)
+            If usagesubtype.Exists then
+             If InStr(usagesubtype.parentNode.outerHTML, "selected") = 0 then 
+               usagesubtype.scrollIntoView(1)
+               Call Delay(500)
+               Call usagesubtype.DblClick
+               Log.Message("'"& usagetypeVal &"' - '"& usagesubtypeval &"' selected")
+             Else
+               Log.Warning(usagetypeVal &" - "& usagesubtypeval &" was Already selected")
+             End If
+             Exit For
+            ElseIf usagesubtype.Exists = False And usagetype.Exists then
+             Log.Warning("'"& usagesubtypeVal &"' is Not a child node of '"& usagetypeval &"'. Check the provided parameter values.")
+            End If
+         End If
+    Next
+    '# Exit condition when exit criteria is met
+    Set usagesubtype = tree.FindChild(Array("contentText","ObjectType","clientHeight"),Array(usagesubtypeVal,"Link","regexp:[^0]+"),10)
+    If i = 5 Or usagesubtype.Exists then
+      Exit For
+    End If
+    Next
+    End If
+   End Function
+   
+   ''##########################################################################################################
+   ''################################### Select Planned Use _Get Data from Excel #############################
+   '# Use below function to get data from the excel sheet for 'Select Planned Usage'. It contains the above selectplanneduse function.
+   Function SelectPlannedUsage_getexcelvalueLogic(browserVal,usagetypeVal,usagesubtypeVal,reuseprojectswitchVal,savedprojectVal,excelPath,selectplanneduseexcelsheet)
+     Log.Message("Function SelectPlannedUsage_getexcelvalueLogic")
+     Set browser = Sys.FindChild("ProcessName",browserVal,1)
+     Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),1)
+     '# Below is the condition to select the path of the request. If reuseprojectswitchVal is 'Yes' it skips selectplanneduse and Detailsofusage
+     'sections and assign the request to existing project which will be selected fromt the dropdown (reflects in code below)
+     If reuseprojectswitchVal = "Yes" then
+       Set savedprojectscombo = page.FindChild(Array("idStr","VisibleOnScreen"),Array("ddUserProjects",True),25)
+       Call savedprojectscombo.ClickItem(savedprojectVal)
+       Log.Message("Project is reused. Hence, skips Select Planned Use page")
+     Else
+       '# When reuseprojectswitchVal is selected as 'No', the below steps are covered where page navigates to selectplanneduse to select usagetype
+       Log.Message("Navigated to 'Select Planned Use' tab")
+       Set objExcel = Sys.OleObject("Excel.Application")
+       objExcel.DisplayAlerts = 0
+       objExcel.Workbooks.Open excelPath
+    	 Set currentWorkSheet = objExcel.ActiveWorkbook.Worksheets(selectplanneduseexcelsheet)
+    	 usedColumnsCount = currentWorkSheet.UsedRange.Columns.Count
+    	 usedRowsCount = currentWorkSheet.UsedRange.Rows.Count
+    	 Set Cells = currentWorksheet.Cells
+       '# starting row in excel is '3' form where the code looks for its data
+    	 For irow = 3 to usedRowsCount-1
+         '# gets usagetypeVal and usagesubtypeVal from columns 4 and 5
+         usagetypeVal = Cells(iRow,4).Value
+         usagesubtypeVal = Cells(iRow,5).Value
+         '# If the cell is not coloured Red, not blank, not holding 'Click to Select' value and not 'End of test' value then the value is selected
+         'to perform the actions using 'SelectPlannedUsage' function. 
+         If Cells(iRow,4).Interior.ColorIndex <> 3 And usagetypeVal <> "" And usagetypeVal <> "Click to Select" And usagetypeVal <> "End of Test" then
+           Call SelectPlannedUsage(browserVal,usagetypeVal,usagesubtypeVal,reuseprojectswitchVal)
+           currentWorksheet.Cells(irow,4).Interior.ColorIndex = 3
+           '# If usagetypeVal is 'End of test and is not coloured red then the cell colour is changed to red.
+         ElseIf usagetypeVal = "End of Test" And objExcel.Cells(iRow,4).Interior.ColorIndex <> 3 then
+           currentWorksheet.Cells(irow,4).Interior.ColorIndex = 3
+           Exit For
+         End If
+    	Next
+      '# The below loop recolours the used red cells to grey after the actions in the function are performed bringing them to original state
+    	For irow = 3 to usedRowsCount-1
+        currentWorksheet.Cells(iRow,4).Interior.ColorIndex = 15
+    	Next
+      objExcel.ActiveWorkbook.SaveAs(excelPath)
+      objExcel.Quit
+    	Set currentWorkSheet = Nothing
+      Set page = browser.FindChild(Array("URL","VisibleOnScreen"),Array("*pls*",True),10)
+      Set continuebtn = page.FindChild("className","buttonNext",25)
+      Call continuebtn.Click
+      End If
+   End Function
+   ''##########################################################################################################
+   ''##########################################################################################################
+                                         ''## DETAILS OF USAGE  
+   ''##########################################################################################################
+   ''########### Function to provide values to a single parameter on 'Details Of Usage' #######################
+   '# The below function is the basic function used within the 'Details of usage' function. 
+   '# labelVal represents the parameter label and inputVal is the value to be given for that parameter. The function covers all the types of 
+   'controls (textbox,checkbox,dropdown etc). Just give parameter label value and input value in the function.
+   '# Example: If 'Author' is the label and 'J K Rowling' is the input value,
+   'labelVal should be given as 'Author' and input value should be given as 'J K Rowling'
+
+  Function DetailsOfUsage_parameterunit(browserVal,labelVal,inputVal)
+    Set browser = Sys.FindChild("ProcessName",browserVal,1)
+    Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),1)
+    '# contentactivepanel is the active panel that is expanded and which exposes the parameters
+    Set contentactivepanel = page.FindChild(Array("className","VisibleOnScreen"),Array("*ui-accordion-content-active*",True),25)
+    '# formblock is the individual panel that holds the label of the parameter and the input controls. The code checks is the provided label is
+    'found in the contentactivepanel and then checks the input type
+    Set formblock = contentactivepanel.FindChildByXPath("//div[@class='formBlock'][contains(.,'"& labelVal &"')]")
+    If Not formblock is Nothing then
+      Set inputtextboxfield = formblock.FindChild(Array("tagName","ObjectType"),Array("INPUT","Textbox"),10)
+      Set inputtextareafield = formblock.FindChild("ObjectType","Textarea",10)
+      Set inputradiobuttonfield = formblock.FindChild(Array("tagName","ObjectType"),Array("INPUT","RadioButton"),10)
+      Set inputselectfield = formblock.FindChild(Array("tagName","ObjectType"),Array("SELECT","Select"),10)
+      '# if input type is textbox
+      If inputtextboxfield.Exists then
+        Call inputtextboxfield.SetText(inputVal)
+        Log.Message("'"& labelVal &"' = '"& inputVal &"'")
+        '# if input type is textarea
+      ElseIf inputtextareafield.Exists then
+        Call inputtextareafield.Keys(inputVal)
+        Log.Message("'"& labelVal &"' = '"& inputVal &"'")
+        '# if input type is radiobutton
+      ElseIf inputradiobuttonfield.Exists then
+         If formblock.FindChild(Array("tagName","ObjectType","nextSibling.textContent"),Array("INPUT","RadioButton",inputVal),10).Exists then
+           Call formblock.FindChild(Array("tagName","ObjectType","nextSibling.textContent"),Array("INPUT","RadioButton",inputVal),10).Click
+           Log.Message("'"& labelVal &"' = '"& inputVal &"'")
+         Else
+           Log.Warning("Checkbox for given '"& inputVal &"' value of '"& labelVal &"' Not recognised. Check if radiobutton or its given value exists")
+         End If
+         '# if input type is dropdown
+      ElseIf inputselectfield.Exists then
+        If InStr(formblock.FindChild(Array("tagName","ObjectType"),Array("SELECT","Select"),10).wItemList,inputVal) <> 0 then
+          Call formblock.FindChild(Array("tagName","ObjectType"),Array("SELECT","Select"),10).ClickItem(inputVal)
+          Log.Message("'"& labelVal &"' = '"& inputVal &"'")
+        Else
+          Log.Warning("Drop down item '"& inputVal &"' not recognised. Check if dropdown or its given value exists")
         End If
-        Call textnodex.Click 
-        Log.Message("TextNode '"& textnodex.contentText &"' is clicked for it's expansion")
+        
       End If
     Else
-      Log.Warning("Parent textnode for target "& usagesubtypeVal &" is not recognised through script to be expanded. So the test might fail for not finding the child node")
+'      '# if parameter based on labelVal provided doesnt exist on active panel, warning is issued. Warning is issued as parameter not found even
+'      'if labelVal has typo
+'      Log.Warning("The given parameter name '"&labelVal&"' Not found on the active panel")
     End If
-  
-    ''## Node Expansion (ex: Book. Web-based Content, TV show, etc) 
-    dynacollapsedAll = tree.FindAllChildren(Array("ObjectType","parentNode.outerHTML","VisibleOnScreen"),Array("Link","*dynatree-folder dynatree-has-children*",True),10)
-    For i = 0 to Ubound(dynacollapsedAll)
-      If not dynacollapsedAll(i) is Nothing then '# Only expands if target is under the parent node. If target is visible already then no action is performed
-        If InStr(dynacollapsedAll(i).parentNode.parentNode.innerHTML,usagesubtypeVal) <> 0 then
-          Call dynacollapsedAll(i).Click
-          Log.Message(dynacollapsedAll(i).innerText &" was Expanded.")
-    Exit For
-        End If
-      End If
-    Next
-    
-    ''## usagetype Expansion (ex: Original text with a few quotes, Anthology or Edited Collection, Textbook, etc). 
-    ''## If Invalid usagetype or Null value is given and usagesubtypeVal is still hidden under this node then test fails
-    Set usagetype = tree.FindChild(Array("ObjectType","contentText"),Array("Link",usagetypeVal),10)
-    If usagetype.Exists Then
-      If InStr(usagetype.parentNode.parentNode.outerHTML,usagesubtypeVal) <> 0 And InStr(usagetype.parentNode.outerHTML,"dynatree-exp-c") <> 0 then '# Selects if target node is its child object
-        Call usagetype.Click
-        Log.Message("'"& usagetypeVal &"' was expanded.")
-      ElseIf InStr(usagetype.parentNode.parentNode.outerHTML,usagesubtypeVal) = 0 then '# If not target link its child object then shows warning in the log.
-        Log.Warning("'"& usagetypeVal &"' is not a parent node of '"& usagesubtypeVal &"'. Hence the no action performed on usagetypeVal")
-      End If
-    ElseIf usagetype.Exists = False then '# If not usagetype found, below warning is shown.
-      Log.Warning("'"& usagetypeVal &"' could Not be found. Check the provided usagetypeVal value.")
-    ElseIf usagetype.Exists And usagetype.VisibleOnScreen = False then '# If usagetype exists but not visible on screen. Checks if parent Textnode expansion is successful.
-      Log.Warning("'"& usagetypeVal &"' is in hidden state. Check if parent node is expanded.")
-    End If
-    ''## usagesubtype Selection
-    Call page.Refresh
-    Set usagesubtype = tree.FindChild(Array("contentText","ObjectType","VisibleOnScreen"),Array(usagesubtypeVal,"Link",True),10)
-    If usagesubtype.Exists Then '# Checks if usagesubtype or Target link is found
-      If InStr(usagesubtype.parentNode.outerHTML, "selected") = 0 then '# Checks of target link is Already selected and performs click to select only if not already selected. Else warning.
-        Call usagesubtype.DblClick
-        Log.Checkpoint("'"& usagetypeVal &"' - '"& usagesubtypeval &"' selected")
-      Else
-        Log.Warning(usagetypeVal &" - "& usagesubtypeval &" was Already selected")
-      End If
-    Else '# If target link object not found due to wrong parameter values provided by tester or if object not identified/removed/not visible
-      Log.Warning(usagesubtypeVal &" could Not be found. Check the provided usagesubtypeVal value.")
-    End If
-
   End Function
   
- ''##################################################################################################################################################
+  ''##########################################################################
+  ''##########################################################################
+  '# Below Function is used in 'Details of Usage' function (Batch_DetailsOfUsage_mandatoryparameters) when running multiple requests 
+  'as a batch while getting data from excel.
+  'The logic is to ignore the cell in the excel which is red or is blank or contains 'End of Test' as its value.
+   Function detOfUsage_getexcelvalueLogic(browserVal,excelPath,selectplanneduseexcelsheet,rowstartVal,tcolumnVal,labelVal,inputVal)
+     Set objExcel = Sys.OleObject("Excel.Application")
+     objExcel.DisplayAlerts = 0
+     objExcel.Workbooks.Open excelPath
+     Set currentWorkSheet = objExcel.ActiveWorkbook.Worksheets(selectplanneduseexcelsheet)
+     Set Cells = currentWorksheet.Cells
+     '# rowstartVal is generally row 3 in the excel
+     irow = rowstartVal
+     Do 
+     '# the logic below is the same as the logic used in getexcel_selectplannedUse function above
+     If currentWorksheet.Cells(irow,tcolumnVal).Interior.ColorIndex <> 3 And currentWorksheet.Cells(irow,tcolumnVal).Value <> "" And currentWorksheet.Cells(irow,4).Value <> "End of Test" then
+       inputVal = GetDataFromExcel(excelPath,selectplanneduseexcelsheet,irow,tcolumnVal)
+       objExcel.Cells(irow,tcolumnVal).Interior.ColorIndex = 3
+       objExcel.ActiveWorkbook.SaveAs(excelPath)
+       Call DetailsOfUsage_parameterunit(browserVal,labelVal,inputVal)
+       Exit Do
+     ElseIf currentWorksheet.Cells(irow,tcolumnVal).Value = "" And currentWorksheet.Cells(irow,4).Value <> "End of Test" then
+      Exit Do  
+     Else
+       irow = irow + 1
+     End If
+     Loop 
+     objExcel.Quit
+    End Function
+  ''##########################################################################
+  ''##########################################################################
+    Function Review_Request(browserVal)
+      Log.Message("Function Review_Request")
+      Set browser = Sys.FindChild("ProcessName",browserVal,1)
+      Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),1)
+      '## clicks on 'Send' button
+      Set sendbtn = page.FindChildByXPath("//a[@class='buttonFinish userValidated']")
+      Call PLS_Delay(browserVal,sendbtn)
+'      Set reqtermscheckbox = page.FindChildByXPath("//INPUT[@id='reqTermsConditions']")
+'      Call reqtermscheckbox.scrollIntoView(1)
+'      Call reqtermscheckbox.ClickChecked(True)
+      Call sendbtn.Click
+      Log.Message("'Send' request button clicked")
+      Call Delay(1000)
+      Call DelayUntilLoad150(browserVal)
+      '## clicks on 'Go to Request Manager' button`
+      Set gotorequestmanagerbtn = page.FindChildByXPath("//a[contains(.,'Go to Request Manager')]")
+      Call PLS_Delay(browserVal,gotorequestmanagerbtn)
+      Do 
+        If gotorequestmanagerbtn.Enabled And gotorequestmanagerbtn.Width <> 0 then
+          Call gotorequestmanagerbtn.Click
+          Log.Message("'Go to Request Manager' button clicked")
+          Exit Do
+        End If
+      Loop
+      Call Delay(1000)
+      Call DelayUntilLoad150(browserVal)
+     
+    End Function
+  ''#######################################################################################################
+  ''########################################################################################################
+                             ''# DETAILS OF USAGE 
+  ''########################################################################################################
+   Dim ArrDetofusageParams
+    ArrDetofusageParams = Array(purposeVal,sectorVal,territoriesVal,printrunVal,retailpriceVal,estimatedsalesVal,_
+     estimatedCDsalesVal,estimateddownloadsalesVal,audiencerestrictedinanywayVal,expectednumberofvisitorsVal,circulationVal,_
+     openaccessVal,estimatednumberofticketsalesVal,numberofslidesVal,totalruntimeVal,numberofusersVal,formatVal,_
+     methodofdistributionVal,periodoftimeVal,perioddownloadisactiveVal,numberofstudentsusingVal,numberofpagesVal,numberoftrasmissionsVal,selectplanneduseexcelsheet)
+     
+  ''########################################################################################################
+  ''######## Function to provide values to all parameters on 'Details Of Usage' in a loop using above Function (Function DetailsOfUsage_parameterunit(browserVal,labelVal,inputVal)) ####  
+    ''# Description: The below function covers only mandatory parameters of 'Details of usage', the list of which were given by PLS
+    Function DetailsOfUsage_mandatoryparameters(browserVal, ArrDetofusageParams)
+    Log.Message("Function DetailsOfUsage_mandatoryparameters")
+    ''# The below 4 parameter values are hardcoded as 'test' in the script.
+    'publicationtitleVal = "test"
+    'authororeditorVal = "test"
+    'publisherVal = "test"
+    'describenewbooktypeVal = "test"
+    '''##################
+    Set browser = Sys.FindChild("ProcessName",browserVal,1)
+    Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),1)
+    Set step4panel = page.FindChild(Array("idStr","VisibleOnScreen"),Array("step-4",True),20)
+    Set purposeofuse = page.FindChild(Array("ObjectIdentifier","VisibleOnScreen"),Array("ddPurpose",True),15)
+    Call purposeofuse.ClickItem(purposeVal)
+    Set sector = page.FindChild(Array("ObjectIdentifier","VisibleOnScreen"),Array("ddSector",True),25)
+    Call sector.ClickItem(sectorVal)
+    Set detailsaccordion = step4panel.FindChild("idStr","accordion",10)
+    For i = 0 to detailsaccordion.wItemCount-1
+    Call detailsaccordion.ExpandItem(i)
+    '###
+    Set contentactivepanel = step4panel.FindChild(Array("className","VisibleOnScreen"),Array("*ui-accordion-content-active*",True),25)
+    Set activetextnode = step4panel.FindChild(Array("className","ObjectType"),Array("*active*","TextNode"),25)
+    nodex = activetextnode.contentText 
+    If nodex = "Your Original Text"  Or nodex = "Your Teacher's Edition Textbook" Or nodex = "Your Textbook" Or nodex = "Your Workbook" Or nodex = "Your web-based content" then
+      Log.Message(activetextnode.contentText)
+      Call DetailsOfUsage_parameterunit(browserVal,"publication title","test publication title")
+      Call DetailsOfUsage_parameterunit(browserVal,"author or editor","test author")
+      Call DetailsOfUsage_parameterunit(browserVal,"publisher","test publisher")
+    ElseIf nodex = "Your Workbook" Or nodex = "Your web-based content" then
+      Log.Message(activetextnode.contentText)
+      Call DetailsOfUsage_parameterunit(browserVal,"publication title","test publication title")
+      Call DetailsOfUsage_parameterunit(browserVal,"author or editor","test author")
+      Call DetailsOfUsage_parameterunit(browserVal,"publisher","test publisher")
+    ElseIf nodex = "Your Anthology or Edited Collection" then
+      Log.Message(activetextnode.contentText)
+      Call DetailsOfUsage_parameterunit(browserVal,"publication title","test publication title")
+      Call DetailsOfUsage_parameterunit(browserVal,"editor","test author")
+      Call DetailsOfUsage_parameterunit(browserVal,"publisher","test publisher")
+    ElseIf nodex = "Your Original Text in Hardback" Or nodex = "Your Original Text in Paperback" Or nodex = "Your Textbook in Hardback" Or nodex = "Your Textbook in Paperback" Or nodex = "Your Anthology or Edited Collection in Hardback" Or nodex = "Your Anthology or Edited Collection in Paperback" Or nodex = "Your Teacher's Edition Textbook in Hardback" Or nodex = "Your Teacher's Edition Textbook in Paperback" then
+      Log.Message(activetextnode.contentText)
+      Call DetailsOfUsage_parameterunit(browserVal,"territories",territoriesVal)
+      Call DetailsOfUsage_parameterunit(browserVal,"print run",printrunVal)
+      Call DetailsOfUsage_parameterunit(browserVal,"retail price",retailpriceVal)
+    ElseIf nodex = "Your Workbook in Hardback" Or nodex = "Your Workbook in Paperback" then
+      Log.Message(activetextnode.contentText)
+      Call DetailsOfUsage_parameterunit(browserVal,"territories",territoriesVal)
+      Call DetailsOfUsage_parameterunit(browserVal,"print run",printrunVal)
+      Call DetailsOfUsage_parameterunit(browserVal,"retail price",retailpriceVal)
+    ElseIf nodex = "Your Original Text eBook" Or nodex = "Your Textbook eBook" Or nodex = "Your Anthology or Edited Collection eBook" Or nodex = "Your Teacher's Edition Textbook eBook" Or nodex = "Your Workbook eBook" then
+      Log.Message(activetextnode.contentText)
+      Call DetailsOfUsage_parameterunit(browserVal,"territories",territoriesVal)
+      Call DetailsOfUsage_parameterunit(browserVal,"estimated sales",estimatedsalesVal)
+      Call DetailsOfUsage_parameterunit(browserVal,"retail price",retailpriceVal)
+    ElseIf nodex = "Your Original Text Audiobook" Or nodex = "Your Textbook Audiobook" Or nodex = "Your Anthology or Edited Collection Audiobook" Or nodex = "Your Teacher's Edition Textbook Audiobook" Or nodex = "Your Workbook Audiobook" then
+      Log.Message(activetextnode.contentText)
+      Call DetailsOfUsage_parameterunit(browserVal,"territories",territoriesVal)
+      Call DetailsOfUsage_parameterunit(browserVal,"estimated CD sales",estimatedCDsalesVal)
+      Call DetailsOfUsage_parameterunit(browserVal,"estimated download sales",estimateddownloadsalesVal)
+      Call DetailsOfUsage_parameterunit(browserVal,"retail price",retailpriceVal)
+    ElseIf nodex = "Your Original Text Online edition" Or nodex = "Your Textbook online edition" Or nodex = "Your Anthology or Edited Collection online edition" Or nodex = "Your Teacher's Edition Textbook online edition" Or nodex = "Your Workbook online edition" then
+      Log.Message(activetextnode.contentText)
+      Call DetailsOfUsage_parameterunit(browserVal,"territories",territoriesVal)
+      Call DetailsOfUsage_parameterunit(browserVal,"expected number of visitors",expectednumberofvisitorsVal)
+      Call DetailsOfUsage_parameterunit(browserVal,"audience restricted in any way?",audiencerestrictedinanywayVal)
+    ElseIf nodex = "Your Textbook Download File" Or nodex = "Your Workbook Download File" Or nodex = "Your Online Webpages" Or nodex = "Your Online Downloadable file" then
+      Log.Message(activetextnode.contentText)
+      Call DetailsOfUsage_parameterunit(browserVal,"territories",territoriesVal)
+      Call DetailsOfUsage_parameterunit(browserVal,"audience restricted in any way?",audiencerestrictedinanywayVal)
+      Call DetailsOfUsage_parameterunit(browserVal,"estimated number of downloads", estimateddownloadsalesVal)
+      Call DetailsOfUsage_parameterunit(browserVal,"expected number of visitors to relevant part of the site",expectednumberofvisitorsVal)
+    ElseIf nodex = "Your unlisted book type" then
+      Log.Message(activetextnode.contentText)
+      Call DetailsOfUsage_parameterunit(browserVal,"describe new book type","test new book type")
+      Call DetailsOfUsage_parameterunit(browserVal,"publication title","test publication title")
+      Call DetailsOfUsage_parameterunit(browserVal,"publisher","test publisher")
+      Call DetailsOfUsage_parameterunit(browserVal,"territories",territoriesVal)
+      Call DetailsOfUsage_parameterunit(browserVal,"print run",printrunVal)
+      Call DetailsOfUsage_parameterunit(browserVal,"retail price",retailpriceVal)
+    ElseIf nodex = "Your Article" then
+      Log.Message(activetextnode.contentText)
+      Call DetailsOfUsage_parameterunit(browserVal,"publication title","test publication title")
+      Call DetailsOfUsage_parameterunit(browserVal,"publisher","test publisher")
+    ElseIf nodex = "Your article in print version" then
+      Log.Message(activetextnode.contentText)
+      Call DetailsOfUsage_parameterunit(browserVal,"territories",territoriesVal)  
+      Call DetailsOfUsage_parameterunit(browserVal,"circulation",circulationVal)
+    ElseIf nodex = "Your article in digital version" then
+      Log.Message(activetextnode.contentText)
+      Call DetailsOfUsage_parameterunit(browserVal,"territories",territoriesVal)
+      Call DetailsOfUsage_parameterunit(browserVal,"open access",openaccessVal)
+      Call DetailsOfUsage_parameterunit(browserVal,"audience restricted in any way?",audiencerestrictedinanywayVal)
+    ElseIf nodex = "Your Online Livestream/Webcast" Or nodex = "Your unlisted digital format" Or nodex = "Your Online App" Or nodex = "Your downloadable file for a Presentation" then
+      Log.Message(activetextnode.contentText) 
+      Call DetailsOfUsage_parameterunit(browserVal,"territories",territoriesVal)
+      Call DetailsOfUsage_parameterunit(browserVal,"retail price",retailpriceVal)
+      Call DetailsOfUsage_parameterunit(browserVal,"audience restricted in any way?",audiencerestrictedinanywayVal)
+    ElseIf nodex = "Your Presentation" then
+      Log.Message(activetextnode.contentText)
+      Call DetailsOfUsage_parameterunit(browserVal,"estimated number of ticket sales",estimatednumberofticketsalesVal)
+      Call DetailsOfUsage_parameterunit(browserVal,"audience restricted in any way?",audiencerestrictedinanywayVal)
+    ElseIf nodex = "Your Presentation's Printed hand-outs" then
+      Log.Message(activetextnode.contentText)
+      Call DetailsOfUsage_parameterunit(browserVal,"print run",printrunVal)
+    ElseIf nodex = "Your Presentation's Projected media" then
+      Log.Message(activetextnode.contentText)
+      Call DetailsOfUsage_parameterunit(browserVal,"number of slides",numberofslidesVal)
+    ElseIf nodex = "Your Presentation speech" then
+      Log.Message(activetextnode.contentText)
+      Call DetailsOfUsage_parameterunit(browserVal,"total run time",totalruntimeVal)
+    ElseIf nodex = "Your print photocopies" Or nodex = "Your electronic scans or copies" then
+      Log.Message(activetextnode.contentText)
+      Call DetailsOfUsage_parameterunit(browserVal,"company or institution name","test company")
+      Call DetailsOfUsage_parameterunit(browserVal,"number of people to whom the material will be distributed",numberofusersVal)
+      Call DetailsOfUsage_parameterunit(browserVal,"territories",territoriesVal)
+      Call DetailsOfUsage_parameterunit(browserVal,"number of pages being copied from",numberofpagesVal)
+      Call DetailsOfUsage_parameterunit(browserVal,"period of time material will be made available",periodoftimeVal)
+    ElseIf nodex = "Your copies for educational use" then
+      Log.Message(activetextnode.contentText)
+      Call DetailsOfUsage_parameterunit(browserVal,"course name","test course")
+      Call DetailsOfUsage_parameterunit(browserVal,"institution name","test institution")
+      Call DetailsOfUsage_parameterunit(browserVal,"number of students using the material",numberofstudentsusingVal)
+      Call DetailsOfUsage_parameterunit(browserVal,"territories",territoriesVal)
+      Call DetailsOfUsage_parameterunit(browserVal,"format",formatVal)
+      Call DetailsOfUsage_parameterunit(browserVal,"period of time material will be made available to course members",periodoftimeVal)
+    ElseIf nodex = "Your Radio Programme" then
+      Log.Message(activetextnode.contentText)
+      Call DetailsOfUsage_parameterunit(browserVal,"show title","test programme")
+      Call DetailsOfUsage_parameterunit(browserVal,"production company","The fox entertainment")
+      Call DetailsOfUsage_parameterunit(browserVal,"territories",territoriesVal)
+      Call DetailsOfUsage_parameterunit(browserVal,"programme description","test programme")
+      Call DetailsOfUsage_parameterunit(browserVal,"context in which content is reused","test")
+    ElseIf nodex = "Your TV show" then
+      Log.Message(activetextnode.contentText)
+      Call DetailsOfUsage_parameterunit(browserVal,"show title","test programme")
+      Call DetailsOfUsage_parameterunit(browserVal,"producer","Mr. xyz")
+      Call DetailsOfUsage_parameterunit(browserVal,"summary of program","test programme")
+      Call DetailsOfUsage_parameterunit(browserVal,"context in which content is reused","test")
+    ElseIf nodex = "Your New TV show" then
+      Log.Message(activetextnode.contentText)
+      Call DetailsOfUsage_parameterunit(browserVal,"territories",territoriesVal)
+      Call DetailsOfUsage_parameterunit(browserVal,"number of transmissions",numberoftrasmissionsVal)
+    ElseIf nodex = "Your Thesis / White Paper / Document" then
+      Log.Message(activetextnode.contentText)
+      Call DetailsOfUsage_parameterunit(browserVal,"type of document","test")
+      Call DetailsOfUsage_parameterunit(browserVal,"publication title","test")
+    End If  
+    Next
+     Set continuebtn = page.FindChild(Array("className","VisibleOnScreen"),Array("buttonNext",True),30)
+     Call continuebtn.Click
+     Set formvalidation = page.FindChild(Array("className","VisibleOnScreen"),Array("formValidation",True),30)
+     If formvalidation.Exists then
+       Log.Warning("Validation error is shown on 'Details of Usage' module. Required fields must have been left blank")
+       Call Runner.Stop
+     End If
+    End Function
+      ''############################# BATCH DETAILS OF USAGE MANDATORY PARAMETERS #################################################
+    '# The below function is similar to that above except that it loops through the rows in excel sheet to get values
+    '# 'DetailsOfUsage_parameterunit' function is used for some parameters while others use 'detOfUsage_getexcelvalueLogic' function.
+    '# DetailsOfUsage_parameterunit provides hardcoded values which doesnt impact the test result
+    '# 'detOfUsage_getexcelvalueLogic' provides values from the excel sheet looping through rows and using colour codes of cells
+    Function Batch_DetailsOfUsage_mandatoryparameters(browserVal,excelPath,selectplanneduseexcelsheet,ArrDetofusageParams)  
+      Set browser = Sys.FindChild("ProcessName",browserVal,1)
+      Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),1)
+      Set step4panel = page.FindChild(Array("idStr","VisibleOnScreen"),Array("step-4",True),20)
+      Set purposeofuse = page.FindChild(Array("ObjectIdentifier","VisibleOnScreen"),Array("ddPurpose",True),25)
+      Call purposeofuse.ClickItem(purposeVal)
+      Set sector = page.FindChild(Array("ObjectIdentifier","VisibleOnScreen"),Array("ddSector",True),25)
+      Call sector.ClickItem(sectorVal)
+      Set detailsaccordion = step4panel.FindChild("idStr","accordion",10)
+      For i = 0 to detailsaccordion.wItemCount-1
+        Call detailsaccordion.ExpandItem(i)
+        ''###
+        Set contentactivepanel = step4panel.FindChild(Array("className","VisibleOnScreen"),Array("*ui-accordion-content-active*",True),25)
+        Set activetextnode = step4panel.FindChild(Array("className","ObjectType"),Array("*active*","TextNode"),25)
+        nodex = activetextnode.contentText 
+        If nodex = "Your Original Text"  Or nodex = "Your Teacher's Edition Textbook" Or nodex = "Your Textbook" Or nodex = "Your Workbook" Or nodex = "Your web-based content" then
+          Log.Message(activetextnode.contentText)
+          Call DetailsOfUsage_parameterunit(browserVal,"publication title","test publication title")
+          Call DetailsOfUsage_parameterunit(browserVal,"author or editor","test author")
+          Call DetailsOfUsage_parameterunit(browserVal,"publisher","test publisher")
+        ElseIf nodex = "Your Workbook" Or nodex = "Your web-based content" then
+          Log.Message(activetextnode.contentText)
+          Call DetailsOfUsage_parameterunit(browserVal,"publication title","test publication title")
+          Call DetailsOfUsage_parameterunit(browserVal,"author or editor","test author")
+          Call DetailsOfUsage_parameterunit(browserVal,"publisher","test publisher")
+        ElseIf nodex = "Your Anthology or Edited Collection" then
+          Log.Message(activetextnode.contentText)
+          Call DetailsOfUsage_parameterunit(browserVal,"publication title","test publication title")
+          Call DetailsOfUsage_parameterunit(browserVal,"editor","test author")
+          Call DetailsOfUsage_parameterunit(browserVal,"publisher","test publisher")
+        ElseIf nodex = "Your Original Text in Hardback" Or nodex = "Your Original Text in Paperback" Or nodex = "Your Textbook in Hardback" Or nodex = "Your Textbook in Paperback" Or nodex = "Your Anthology or Edited Collection in Hardback" Or nodex = "Your Anthology or Edited Collection in Paperback" Or nodex = "Your Teacher's Edition Textbook in Hardback" Or nodex = "Your Teacher's Edition Textbook in Paperback" then
+          Log.Message(activetextnode.contentText)
+          Call detOfUsage_getexcelvalueLogic(browserVal,excelPath,selectplanneduseexcelsheet,3,7,"territories",territoriesVal)
+          Call detOfUsage_getexcelvalueLogic(browserVal,excelPath,selectplanneduseexcelsheet,3,8,"print run", printrunVal)
+          Call detOfUsage_getexcelvalueLogic(browserVal,excelPath,selectplanneduseexcelsheet,3,9,"retail price",retailpriceVal)
+        ElseIf nodex = "Your Workbook in Hardback" Or nodex = "Your Workbook in Paperback" then
+          Log.Message(activetextnode.contentText)
+          Call detOfUsage_getexcelvalueLogic(browserVal,excelPath,selectplanneduseexcelsheet,3,7,"territories",territoriesVal)
+          Call detOfUsage_getexcelvalueLogic(browserVal,excelPath,selectplanneduseexcelsheet,3,8,"print run", printrunVal)
+          Call detOfUsage_getexcelvalueLogic(browserVal,excelPath,selectplanneduseexcelsheet,3,9,"retail price",retailpriceVal)
+        ElseIf nodex = "Your Original Text eBook" Or nodex = "Your Textbook eBook" Or nodex = "Your Anthology or Edited Collection eBook" Or nodex = "Your Teacher's Edition Textbook eBook" Or nodex = "Your Workbook eBook" then
+          Log.Message(activetextnode.contentText)
+          Call detOfUsage_getexcelvalueLogic(browserVal,excelPath,selectplanneduseexcelsheet,3,7,"territories",territoriesVal)
+          Call detOfUsage_getexcelvalueLogic(browserVal,excelPath,selectplanneduseexcelsheet,3,10,"estimated sales",estimatedsalesVal)
+          Call detOfUsage_getexcelvalueLogic(browserVal,excelPath,selectplanneduseexcelsheet,3,9,"retail price",retailpriceVal)
+        ElseIf nodex = "Your Original Text Audiobook" Or nodex = "Your Textbook Audiobook" Or nodex = "Your Anthology or Edited Collection Audiobook" Or nodex = "Your Teacher's Edition Textbook Audiobook" Or nodex = "Your Workbook Audiobook" then
+          Log.Message(activetextnode.contentText)
+          Call detOfUsage_getexcelvalueLogic(browserVal,excelPath,selectplanneduseexcelsheet,3,7,"territories",territoriesVal)
+          Call detOfUsage_getexcelvalueLogic(browserVal,excelPath,selectplanneduseexcelsheet,3,11,"estimated CD sales",estimatedCDsalesVal)
+          Call detOfUsage_getexcelvalueLogic(browserVal,excelPath,selectplanneduseexcelsheet,3,12,"estimated download sales",estimateddownloadsalesVal)
+          Call detOfUsage_getexcelvalueLogic(browserVal,excelPath,selectplanneduseexcelsheet,3,9,"retail price",retailpriceVal)
+        ElseIf nodex = "Your Original Text Online edition" Or nodex = "Your Textbook online edition" Or nodex = "Your Anthology or Edited Collection online edition" Or nodex = "Your Teacher's Edition Textbook online edition" Or nodex = "Your Workbook online edition" then
+          Log.Message(activetextnode.contentText)
+          Call detOfUsage_getexcelvalueLogic(browserVal,excelPath,selectplanneduseexcelsheet,3,7,"territories",territoriesVal)
+          Call detOfUsage_getexcelvalueLogic(browserVal,excelPath,selectplanneduseexcelsheet,3,14,"expected number of visitors",expectednumberofvisitorsVal)
+          Call detOfUsage_getexcelvalueLogic(browserVal,excelPath,selectplanneduseexcelsheet,3,13,"audience restricted in any way?",audiencerestrictedinanywayVal)
+        ElseIf nodex = "Your Textbook Download File" Or nodex = "Your Workbook Download File" Or nodex = "Your Online Webpages" Or nodex = "Your Online Downloadable file" then
+          Log.Message(activetextnode.contentText)
+          Call detOfUsage_getexcelvalueLogic(browserVal,excelPath,selectplanneduseexcelsheet,3,7,"territories",territoriesVal)
+          Call detOfUsage_getexcelvalueLogic(browserVal,excelPath,selectplanneduseexcelsheet,3,13,"audience restricted in any way?",audiencerestrictedinanywayVal)
+        ElseIf nodex = "Your unlisted book type" then
+          Log.Message(activetextnode.contentText)
+          Call DetailsOfUsage_parameterunit(browserVal,"describe new book type","test new book type")
+          Call DetailsOfUsage_parameterunit(browserVal,"publication title","test publication title")
+          Call DetailsOfUsage_parameterunit(browserVal,"publisher","test publisher")
+          Call detOfUsage_getexcelvalueLogic(browserVal,excelPath,selectplanneduseexcelsheet,3,7,"territories",territoriesVal)
+          Call detOfUsage_getexcelvalueLogic(browserVal,excelPath,selectplanneduseexcelsheet,3,8,"print run", printrunVal)
+          Call detOfUsage_getexcelvalueLogic(browserVal,excelPath,selectplanneduseexcelsheet,3,9,"retail price",retailpriceVal)
+        ElseIf nodex = "Your Article" then
+          Log.Message(activetextnode.contentText)
+          Call DetailsOfUsage_parameterunit(browserVal,"publication title","test publication title")
+          Call DetailsOfUsage_parameterunit(browserVal,"publisher","test publisher")
+        ElseIf nodex = "Your article in print version" then
+          Log.Message(activetextnode.contentText)
+          Call detOfUsage_getexcelvalueLogic(browserVal,excelPath,selectplanneduseexcelsheet,3,7,"territories",territoriesVal)
+          Call detOfUsage_getexcelvalueLogic(browserVal,excelPath,selectplanneduseexcelsheet,3,15,"circulation",circulationVal)
+        ElseIf nodex = "Your article in digital version" then
+          Log.Message(activetextnode.contentText)
+          Call detOfUsage_getexcelvalueLogic(browserVal,excelPath,selectplanneduseexcelsheet,3,7,"territories",territoriesVal)
+          Call detOfUsage_getexcelvalueLogic(browserVal,excelPath,selectplanneduseexcelsheet,3,16,"open access",openaccessVal)
+          Call detOfUsage_getexcelvalueLogic(browserVal,excelPath,selectplanneduseexcelsheet,3,13,"audience restricted in any way?",audiencerestrictedinanywayVal)
+        ElseIf nodex = "Your Online Livestream/Webcast" Or nodex = "Your unlisted digital format" Or nodex = "Your Online App" Or nodex = "Your downloadable file for a Presentation" then
+          Log.Message(activetextnode.contentText) 
+          Call detOfUsage_getexcelvalueLogic(browserVal,excelPath,selectplanneduseexcelsheet,3,7,"territories",territoriesVal)
+          Call detOfUsage_getexcelvalueLogic(browserVal,excelPath,selectplanneduseexcelsheet,3,9,"retail price",retailpriceVal)
+          Call detOfUsage_getexcelvalueLogic(browserVal,excelPath,selectplanneduseexcelsheet,3,13,"audience restricted in any way?",audiencerestrictedinanywayVal)
+        ElseIf nodex = "Your Presentation" then
+          Log.Message(activetextnode.contentText)
+          Call detOfUsage_getexcelvalueLogic(browserVal,excelPath,selectplanneduseexcelsheet,3,17,"estimated number of ticket sales",estimatednumberofticketsalesVal)
+          Call detOfUsage_getexcelvalueLogic(browserVal,excelPath,selectplanneduseexcelsheet,3,13,"audience restricted in any way?",audiencerestrictedinanywayVal)
+        ElseIf nodex = "Your Presentation's Printed hand-outs" then
+          Log.Message(activetextnode.contentText)
+          Call detOfUsage_getexcelvalueLogic(browserVal,excelPath,selectplanneduseexcelsheet,3,8,"print run", printrunVal)
+        ElseIf nodex = "Your Presentation's Projected media" then
+          Log.Message(activetextnode.contentText)
+          Call detOfUsage_getexcelvalueLogic(browserVal,excelPath,selectplanneduseexcelsheet,3,18,"number of slides",numberofslidesVal)
+        ElseIf nodex = "Your Presentation speech" then
+          Log.Message(activetextnode.contentText)
+          Call detOfUsage_getexcelvalueLogic(browserVal,excelPath,selectplanneduseexcelsheet,3,19,"total run time",totalruntimeVal)
+        ElseIf nodex = "Your print photocopies" then
+          Log.Message(activetextnode.contentText)
+          Call DetailsOfUsage_parameterunit(browserVal,"company or institution name","test company")
+          Call DetailsOfUsage_parameterunit(browserVal,"number of people to whom the material will be distributed",numberofusersVal)
+          Call DetailsOfUsage_parameterunit(browserVal,"territories",territoriesVal)
+          Call DetailsOfUsage_parameterunit(browserVal,"number of pages being copied from",numberofpagesVal)
+          Call DetailsOfUsage_parameterunit(browserVal,"period of time material will be made available",periodoftimeVal)
+        ElseIf nodex = "Your electronic scans or copies" then
+          Log.Message(activetextnode.contentText)
+          Call DetailsOfUsage_parameterunit(browserVal,"company or institution name","test company")
+          Call DetailsOfUsage_parameterunit(browserVal,"number of users to whom the material will be distributed",numberofusersVal)
+          Call DetailsOfUsage_parameterunit(browserVal,"territories",territoriesVal)
+          Call DetailsOfUsage_parameterunit(browserVal,"number of pages being copied from",numberofpagesVal)
+          Call DetailsOfUsage_parameterunit(browserVal,"period of time material will be made available",periodoftimeVal)
+        ElseIf nodex = "Your copies for educational use" then
+          Log.Message(activetextnode.contentText)
+          Call DetailsOfUsage_parameterunit(browserVal,"course name","test course")
+          Call DetailsOfUsage_parameterunit(browserVal,"institution name","test institution")
+          Call detOfUsage_getexcelvalueLogic(browserVal,excelPath,selectplanneduseexcelsheet,3,25,"number of students using the material",numberofstudentsusingVal)
+          Call detOfUsage_getexcelvalueLogic(browserVal,excelPath,selectplanneduseexcelsheet,3,7,"territories",territoriesVal)
+          Call detOfUsage_getexcelvalueLogic(browserVal,excelPath,selectplanneduseexcelsheet,3,21,"format",formatVal)
+          Call detOfUsage_getexcelvalueLogic(browserVal,excelPath,selectplanneduseexcelsheet,3,23,"period of time material will be made available to course members",periodoftimeVal)
+        End If  
+      Next
+      Set continuebtn = page.FindChild(Array("className","VisibleOnScreen"),Array("buttonNext",True),30)
+      Call continuebtn.Click
+   End Function
+   ''#######################################################################################################################
+   ''#######################################################################################################################
+   
+  ''######################################### Below is the chekpoint for the status of the request ########
+    ' The below function is used at the end of the request making to verify the status. The expectedstatusVal is the status that
+    ' is expected of the request made (eg: Pending / Quotation sent/ Licensed)
+    'This is used in 'Request_By_Requestor test and Batch_Request test. 
+   Function status_validation(browserVal,expectedstatusVal)
+     Set browser = Sys.FindChild("ProcessName",browserVal,1)
+     Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),1)
+     Set rmtable = page.FindChildByXPath("//table")
+     statuscolumnId = rmtable.FindChildByXPath("//th[contains(.,'Status')]").ColumnIndex
+     If rmtable.Cell(1, statuscolumnId).TextNode(0).title = expectedstatusVal then
+       Log.Checkpoint("Test Passed: The request status is shown as '"& expectedstatusVal &"'")
+       Log.Message("Status: "& rmtable.Cell(1, statuscolumnId).TextNode(0).title)
+     Else
+       Log.Error("Status test Failed: The request status was not shown as '"& expectedstatusVal &"'")
+     End If
+     Log.Picture(rmtable)
+   End Function
+   ''######################################################################################################
+    
+  
+  
+  
+  
+  

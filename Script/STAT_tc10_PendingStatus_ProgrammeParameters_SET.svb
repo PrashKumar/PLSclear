@@ -1,0 +1,169 @@
+﻿'USEUNIT Library
+'USEUNIT LIBRARY_REQUESTMANAGER
+'USEUNIT LIBRARY_TITLEMANAGER
+
+''## Description: Logins as a Request holder and pushes request through that falls outside of FoC & FPL. Verifies the status of the request.
+
+ Sub STAT_tc10_PendingStatus_ProgrammeParameters_SET
+     Log.Message("TestCase - STAT_tc10_PendingStatus_ProgrammeParameters_SET")
+   '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+   excelPath = "C:\Users\C4T\Desktop\PLSclearDDT.xlsx"
+   excelRowVal = 54
+   Set objExcel = Sys.OleObject("Excel.Application")
+   objExcel.DisplayAlerts = 0
+   objExcel.Visible = True
+   objExcel.Workbooks.Open excelPath
+   
+   browserVal = GetDataFromExcel(excelPath,"Login",excelRowVal,1)
+   urlVal = GetDataFromExcel(excelPath,"Login",excelRowVal,2)
+   ''## Rights Holder Login credentials
+   usernameVal = GetDataFromExcel(excelPath,"Login",excelRowVal,3)
+   passwordVal = GetDataFromExcel(excelPath,"Login",excelRowVal,4) 
+     
+   ''#########
+   ''# Search
+   searchtypeVal = GetDataFromExcel(excelPath,"Search",excelRowVal,1)
+   searchVal = GetDataFromExcel(excelPath,"Search",excelRowVal,2)
+   resultVal = searchVal
+   ''# Search
+   textextractVal = GetDataFromExcel (excelPath,"Select Content",excelRowVal,1)
+   poemVal = GetDataFromExcel(excelPath,"Select Content",excelRowVal,2)
+   illustrationVal = GetDataFromExcel(excelPath,"Select Content",excelRowVal,3)
+   tableVal = GetDataFromExcel(excelPath,"Select Content",excelRowVal,4)
+   articleVal = GetDataFromExcel(excelPath,"Select Content",excelRowVal,5)
+   ''# Details of Content
+   noofwordsVal = GetDataFromExcel(excelPath,"Details of Content",excelRowVal,1)
+   pagenoVal = GetDataFromExcel(excelPath,"Details of Content",excelRowVal,2)
+   nameofthepoemVal = GetDataFromExcel(excelPath,"Details of Content",excelRowVal,3)
+   reproductioncolourVal = GetDataFromExcel(excelPath,"Details of Content",excelRowVal,4)
+   reproductionsizeVal = GetDataFromExcel(excelPath,"Details of Content",excelRowVal,5)
+   figurenumber_titleVal  = GetDataFromExcel(excelPath,"Details of Content",excelRowVal,6)
+   pagenumberVal = GetDataFromExcel(excelPath,"Details of Content",excelRowVal,7)
+   pagerangeVal = GetDataFromExcel(excelPath,"Details of Content",excelRowVal,8)
+   issuedateVal = GetDataFromExcel(excelPath,"Details of Content",excelRowVal,9)
+   yearofpublicationVal = GetDataFromExcel(excelPath,"Details of Content",excelRowVal,10)
+   reuseprojectswitchVal = GetDataFromExcel(excelPath,"Details of Content",excelRowVal,11)
+   areyouauthorVal = GetDataFromExcel(excelPath,"Details of Content",excelRowVal,14)
+  '##  Select Planned Use 
+   selectplanneduseexcelsheet = "Select Planned Use" 
+   usagetypeVal = "Original Text with a few quotes"
+   usagesubtypeVal = "Hardback"
+  '## 'Details of Usage' (Mandatory parameters ONLY)
+   purposeVal = GetDataFromExcel(excelPath,"Details of Content",excelRowVal,12)
+   sectorVal = GetDataFromExcel(excelPath,"Details of Content",excelRowVal,13)
+   territoriesVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,7)
+   printrunVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,8)
+   retailpriceVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,9)
+   estimatedsalesVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,10)
+   estimatedCDsalesVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,11)
+   estimateddownloadsalesVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,12)
+   audiencerestrictedinanywayVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,13)
+   expectednumberofvisitorsVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,14)
+   circulationVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,15)
+   openaccessVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,16)
+   estimatednumberofticketsalesVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,17)
+   numberofslidesVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,18)
+   totalruntimeVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,19)
+   numberofusersVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,20)
+   formatVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,21)
+   methodofdistributionVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,22)
+   periodoftimeVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,23)
+   perioddownloadisactiveVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,24)
+   numberofstudentsusingVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,25)
+   numberofpagesVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,26)
+
+
+  ''####################  SCRIPT  ################################################################
+    ''## Launch the PLS clear in required browser
+    Call Launch_PLSclear(browserVal,urlVal)
+    Set browser = Sys.FindChild("ProcessName",browserVal,1)
+    Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),1)
+    ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    ''## Login as requestor
+    '# Close Additional dialogue (Do you want to leave this site?) that comes up when previous request session is to be aborted
+    Call ActionOnAlertDialog(browserVal,"Yes")
+    '# Login
+    Call Login(browserVal,usernameVal,passwordVal,"pass","stop")
+    ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    ''## Close any dialogues that appears on screen
+    Call ActionOnAlertDialog(browserVal,"Yes")
+    '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    ''## Navigate to Request Manager
+    Call NavigateToPage(browserVal,"Programme Manager")
+    ''## Click on FoC link
+    Set browser = Sys.FindChild("ProcessName",browserVal,1)
+    Call Delay(1000)
+    Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),2)
+    Set fpllnk = page.FindChild("idStr","ctl00_PLSMainContent_rpClearProgrammes_ctl01_customHyper",30)
+    Call PLS_Delay(browserVal,fpllnk)
+    Call fpllnk.Click
+    '##
+    Call Get_Programme_Title(browserVal,issn1,searchVal)
+    ''## Navigate to Request Manager
+    Call NavigateToPage(browserVal,"Home")
+    ''## SEARCH FOR A TITLE
+    Call SearchTitle(browserVal,searchtypeVal,issn1)
+    ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    ''## SELECT A TITLE FROM THE SEARCH RESULTS
+    Call SelectSearchResult(browserVal,issn1,isnVal)
+    ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    ''## SELECT CONTENT
+    Log.Checkpoint("Navigated to 'Select Content' tab")
+    Call SelectContent(browserVal,textextractVal,poemVal,illustrationVal,tableVal,articleVal)
+    ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    ''## DETAILS OF CONTENT
+    Log.Checkpoint("Navigated to 'Details of Content' tab")
+    Call Details_of_Content_MandatoryParameters(DetofContentParamsArr)
+    
+    '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    ''## SELECT PLANNED USE
+    If reuseprojectswitchVal = "No" then
+      Call SelectPlannedUsage(browserVal,usagetypeVal,usagesubtypeVal,reuseprojectswitchVal)
+      Set continuebtn = page.FindChild("className","buttonNext",25)
+      Call continuebtn.Click
+      Call Delay (1000)
+    End If
+
+    '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    '## DETAILS OF USAGE
+     Log.Checkpoint("Navigated to 'Details of Usage' tab")
+     Call DetailsOfUsage_mandatoryparameters(browserVal, ArrDetofusageParams) 
+    '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    '## REVIEW REQUEST
+    Call Review_Request(browserVal)
+    ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    ''## REQUEST MANAGER
+    '## Verifies if Request is made Succesfully and the request title is found in the top row of the Request Manager table
+    Set browser = Sys.FindChild("ProcessName",browserVal,1)
+    Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),10)
+    Set sentrequestslink = page.FindChildByXPath("//a[contains(.,'Sent Requests')]")
+    Call sentrequestslink.Click
+    Call Delay(10000)
+    Call browser.Refresh
+    Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),10)
+    Set rmtable = page.FindChildByXPath("//table")
+    Set isncell = rmtable.FindChild(Array("ColumnIndex","RowIndex","Visible"),Array(2,1,True),2)
+    Log.Message("isnVal = "& isnVal)
+    Set reqIDcell = rmtable.FindChild(Array("ColumnIndex","RowIndex","Visible"),Array(0,1,True),2)
+    reqIDVal = reqIDcell.contentText 
+    If isncell.contentText = isnVal then
+      Log.Checkpoint("Request was made successfully for '"& resultVal &"'. Requested ISN found in the 'Request Manager' table top row")
+    Else
+      Log.Error("Request could NOT be made for '"& resultVal &"'. Requested ISN NOT found in the 'Request Manager' table top row.")
+    End If
+     ''## Status check point
+     statuscolumnID = rmtable.FindChild(Array("RowIndex","contentText"),Array("0","Status"),3).ColumnIndex
+    If rmtable.Cell(1, statuscolumnID).TextNode(0).title = "Pending" then
+      Log.Checkpoint("PendingStatus_ProgrammeParameters_NOTSET Passed on RQ account: The request status is shown as 'Pending'")
+      Log.Message("Status: "& rmtable.Cell(1, statuscolumnID).TextNode(0).title)
+    Else
+      Log.Error("PendingStatus_ProgrammeParameters_NOTSET Passed on RQ account: The request status is NOT shown as 'Pending'")
+    End If
+   
+    ''# Close Excel instance
+    objExcel.Quit
+    Set objExcel = Nothing
+
+
+ End Sub
+   

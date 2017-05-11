@@ -4,26 +4,77 @@
 	<testData />
 	<data />
 	<children>
-		<child key="{5382BEA6-FEAB-49BC-AC6C-39F9E83981A5}" type="Tested Application" typeId="{FD30A383-63C2-4C25-948C-2595C0F81320}">
-			<config nodeName="http___demo_plsclear_com_" autorunOnRecording="False" enabled="True" count="1" useFeaturedRuntimeObject="True" userChangeName="False">
-				<runModeParams activeRunMode="Web">
-					<param name="Web" parameters="" workFolder="" browserType="Internet Explorer" browserVersion="11.0 (32-bit)" pageAddress="http://demo.plsclear.com/" browserArguments="" />
-				</runModeParams>
-			</config>
-			<testData />
-			<data />
-		</child>
-		<child key="{8A6B1523-FD04-475B-B933-27E615A1DB7D}" type="Tested Application" typeId="{FD30A383-63C2-4C25-948C-2595C0F81320}">
-			<config nodeName="http___demo_plsclear_com_1" autorunOnRecording="False" enabled="True" count="1" useFeaturedRuntimeObject="True" userChangeName="False">
-				<runModeParams activeRunMode="Web">
-					<param name="Web" parameters="" workFolder="" browserType="Internet Explorer" browserVersion="11.0 (64-bit)" pageAddress="http://demo.plsclear.com/" browserArguments="" />
-				</runModeParams>
-			</config>
-			<testData />
-			<data />
-		</child>
 		<child key="{B38BEB14-1882-4AF4-A668-3129C4F91A78}" type="Tested Application" typeId="{FD30A383-63C2-4C25-948C-2595C0F81320}">
 			<config nodeName="chrome" autorunOnRecording="False" enabled="True" count="1" useFeaturedRuntimeObject="True" userChangeName="False">
+				<runModeParams activeRunMode="Simple">
+					<param name="RunAs" parameters="" workFolder="" userName="" password="" domain="" />
+					<param name="Profile" parameters="" workFolder="" />
+					<param name="Debug" parameters="" workFolder="" />
+					<param name="Simple" fileName="chrome.exe" filePath="C:\Program Files (x86)\Google\Chrome\Application\" parameters="" workFolder="" />
+				</runModeParams>
+			</config>
+			<testData />
+			<data />
+		</child>
+		<child key="{F1B92530-103D-431E-A05B-414DD0BEB733}" type="Tested Application" typeId="{FD30A383-63C2-4C25-948C-2595C0F81320}">
+			<config nodeName="firefox" autorunOnRecording="False" enabled="True" count="1" useFeaturedRuntimeObject="True" userChangeName="False">
+				<runModeParams activeRunMode="Simple">
+					<param name="RunAs" parameters="" workFolder="" userName="" password="" domain="" />
+					<param name="Profile" parameters="" workFolder="" />
+					<param name="Debug" parameters="" workFolder="" />
+					<param name="Simple" fileName="firefox.exe" filePath="C:\Program Files (x86)\Mozilla Firefox\" parameters="" workFolder="" />
+				</runModeParams>
+			</config>
+			<testData />
+			<data />
+		</child>
+		<child key="{7F77A641-4F45-4B4B-9C0B-8E120D55242F}" type="Tested Application" typeId="{FD30A383-63C2-4C25-948C-2595C0F81320}">
+			<config nodeName="http___uat_plsclear_com" autorunOnRecording="False" enabled="True" count="1" useFeaturedRuntimeObject="True" userChangeName="False">
+				<runModeParams activeRunMode="Web">
+					<param name="Web" parameters="" workFolder="" browserType="Internet Explorer" browserVersion="11.0 (64-bit)" pageAddress="http://uat.plsclear.com" browserArguments="" />
+				</runModeParams>
+			</config>
+			<testData />
+			<data />
+		</child>
+		<child key="{2A5E2619-8217-4F7D-BE10-0C5D69FF6C0C}" type="Tested Application" typeId="{FD30A383-63C2-4C25-948C-2595C0F81320}">
+			<config nodeName="iexplore" autorunOnRecording="False" enabled="True" count="1" useFeaturedRuntimeObject="True" userChangeName="False">
+				<runModeParams activeRunMode="Simple">
+					<param name="RunAs" parameters="" workFolder="" userName="" password="" domain="" />
+					<param name="Profile" parameters="" workFolder="" />
+					<param name="Debug" parameters="" workFolder="" />
+					<param name="Simple" fileName="iexplore.exe" filePath="C:\Program Files\Internet Explorer\" parameters="" workFolder="" />
+				</runModeParams>
+			</config>
+			<testData />
+			<data />
+		</child>
+		<child key="{1CD2C568-25CF-4661-87E0-BADB9580CEE6}" type="Tested Application" typeId="{FD30A383-63C2-4C25-948C-2595C0F81320}">
+			<config nodeName="iexplore1" autorunOnRecording="False" enabled="True" count="1" useFeaturedRuntimeObject="True" userChangeName="False">
+				<runModeParams activeRunMode="Simple">
+					<param name="RunAs" parameters="" workFolder="" userName="" password="" domain="" />
+					<param name="Profile" parameters="" workFolder="" />
+					<param name="Debug" parameters="" workFolder="" />
+					<param name="Simple" fileName="iexplore.exe" filePath="C:\Program Files\Internet Explorer\" parameters="" workFolder="" />
+				</runModeParams>
+			</config>
+			<testData />
+			<data />
+		</child>
+		<child key="{6B895B0F-4F40-41A1-B6CE-3EABAAA39B23}" type="Tested Application" typeId="{FD30A383-63C2-4C25-948C-2595C0F81320}">
+			<config nodeName="firefox1" autorunOnRecording="False" enabled="True" count="1" useFeaturedRuntimeObject="True" userChangeName="False">
+				<runModeParams activeRunMode="Simple">
+					<param name="RunAs" parameters="" workFolder="" userName="" password="" domain="" />
+					<param name="Profile" parameters="" workFolder="" />
+					<param name="Debug" parameters="" workFolder="" />
+					<param name="Simple" fileName="firefox.exe" filePath="C:\Program Files (x86)\Mozilla Firefox\" parameters="" workFolder="" />
+				</runModeParams>
+			</config>
+			<testData />
+			<data />
+		</child>
+		<child key="{45ED0ABA-2B5A-492F-B540-148AA7AF7EE9}" type="Tested Application" typeId="{FD30A383-63C2-4C25-948C-2595C0F81320}">
+			<config nodeName="chrome1" autorunOnRecording="False" enabled="True" count="1" useFeaturedRuntimeObject="True" userChangeName="False">
 				<runModeParams activeRunMode="Simple">
 					<param name="RunAs" parameters="" workFolder="" userName="" password="" domain="" />
 					<param name="Profile" parameters="" workFolder="" />

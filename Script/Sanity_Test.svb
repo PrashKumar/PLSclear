@@ -1,0 +1,152 @@
+﻿'USEUNIT LIBRARY
+'USEUNIT LIBRARY_REQUESTMANAGER
+'USEUNIT LIBRARY_TITLEMANAGER
+
+Sub Sanity_Test
+    Log.Message("TestCase - Sanity_Test")
+   browserVal = "chrome"
+   urlVal = "http://uat.plsclear.com"
+   '# Requestor credentials
+   usernameVal1 = "auto@gmail.com"
+   passwordVal1 = "Password1"
+   '# Request Holder credentials
+   usernameVal2 = "mwagner"
+   passwordVal2 = "pinter629"
+  
+
+   
+   Call Launch_PLSclear(browserVal,urlVal)
+   Log.Message("Home page Tests before Login")
+   Set browser = Sys.FindChild("ProcessName",browserVal,1)
+   Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),1)
+  
+   '## Home Page
+   Set hometab = page.FindChildByXPath("//a[contains(.,'Home')]")
+   If Not hometab is Nothing then
+     Log.Checkpoint("Hometab Found")
+     Call hometab.Click
+     Call Delay(1000)
+   Else
+     Log.Warning("Hometab NOT found")
+   End If
+   '# Log in button
+   Set logInLnk = page.FindChild(Array("idStr","VisibleOnScreen"),Array("ctl00_btnLogin",True),25)
+   If logInLnk.Exists then
+     Log.Checkpoint("Log In button Found")
+   Else
+     Log.Warning("Log In button NOT found")
+   End If
+   '# Request Manager tab
+   Call Delay(1000)
+   Set requestmanagertab = page.FindChildByXPath("//a[contains(.,'Request Manager')]")
+   If Not requestmanagertab is Nothing then
+     If requestmanagertab.VisibleOnScreen then
+       Log.Warning("Request Manager tab available before user logs in")
+     Else
+       Log.Checkpoint("Request Manager tab NOT available for user before log in")
+     End If
+   Else
+     Log.Checkpoint("Request Manager tab NOT available for user before log in")
+   End If
+   '# Register Link
+   Set registerLnk = page.FindChild(Array("idStr","VisibleOnScreen"),Array("ctl00_MenuLogin_LoginView1_registerLink",True),15)
+   If registerLnk.Exists then
+     Log.Checkpoint("Register button Found")
+   Else
+     Log.Warning("Register button NOT found")
+   End If
+   '# Search bar 
+   Set searchbar = page.FindChild(Array("className","VisibleOnScreen"),Array("searchBar",True),15)
+   If searchbar.Exists then
+     Log.Checkpoint("SearchBar Found")
+   Else
+     Log.Warning("SearchBar NOT found")
+   End If
+   ''# Help Desk contacts
+   Set contactphone = page.FindChild(Array("contentText","Visible"),Array("020 7079 5930",True),15)
+   Set contactemail = page.FindChild(Array("contentText","Visible"),Array("plsclear@pls.org.uk",True),15)
+   If contactphone.Exists And contactemail.Exists then
+     Log.Checkpoint("Help Desk contacts visible")
+   Else
+     Log.Warning("Help Desk contacts Not found")
+   End If
+   ''# Username & Password buttons & Login as a Requestor
+   Set usernameTxtbox = page.FindChild(Array("ObjectLabel","VisibleOnScreen"),Array("username",True),15)
+   Set passwordTxtbox = page.FindChild(Array("ObjectLabel","VisibleOnScreen"),Array("password",True),15)
+   Set submitbtn = page.FindChild(Array("ObjectLabel","VisibleOnScreen"),Array("Sign in",True),15)
+   Set forgottenpasswordlnk = page.FindChild(Array("contentText","VisibleOnScreen"),Array("Forgotten your password?",True),15)
+   If usernameTxtbox.Exists And passwordTxtbox.Exists And submitbtn.Exists And forgottenpasswordlnk.Exists then
+     Log.Checkpoint("Username, Password, Submit & Forgotten password link buttons found")
+     Call usernameTxtbox.SetText(usernameVal1)
+     Call passwordTxtbox.SetText(passwordVal1)
+     Call submitbtn.Click
+     Call Delay(2000)
+   Else
+     Log.Warning("Username, Password and Submit & Forgotten password link buttons NOT found")
+   End If
+  
+   ''#################
+   Set hometab = page.FindChildByXPath("//a[@title='Navigate to Home']")
+   Set requestmanagertab = page.FindChildByXPath("//a[contains(.,'Request Manager')]")
+   Set titlemanagertab = page.FindChildByXPath("//a[contains(.,'Title Manager')]")
+   If Not hometab is Nothing And Not requestmanagertab is Nothing And Not titlemanagertab is Nothing then
+     Log.Warning("Requestor login displays all 3 tabs")
+   ElseIf Not hometab is Nothing And Not requestmanagertab is Nothing And titlemanagertab is Nothing then
+     Log.Checkpoint("Requestor login displays Home tab And Request Manager tabs Only")
+   End If
+   If hometab.className = "selected" then
+     Log.Checkpoint("Requestor login navigates to Home page")
+   Else
+     Log.Warning("Requestor login Does Not navigate to Home page")
+   End If
+   Set sentrequestslink = page.FindChildByXPath("//a[contains(.,'Sent Requests')]")
+   Set forreviewlink = page.FindChildByXPath("//a[contains(.,'For Review')]")
+   If Not sentrequestslink Is Nothing And forreviewlink Is Nothing then
+     Log.Checkpoint("Sent Requests link is Only shown for Requestor login")
+   Else
+     Log.Warning("For Review link is also shown for Requestor login")
+   End If
+   Set logOffLnk = page.FindChild(Array("idStr","VisibleOnScreen"),Array("ctl00_MenuLogin_LoginView1_LoginStatus1",True),15)
+   Call logOffLnk.Click
+   Call Delay(3000)
+   '# Login as a Request Holder
+   Set browser = Sys.FindChild("ProcessName",browserVal,1)
+   Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),1)
+   Set usernameTxtbox = page.FindChild(Array("ObjectLabel","VisibleOnScreen"),Array("username",True),20)
+   Set passwordTxtbox = page.FindChild(Array("ObjectLabel","VisibleOnScreen"),Array("password",True),20)
+   Set submitbtn = page.FindChild(Array("ObjectLabel","VisibleOnScreen"),Array("Sign in",True),15)
+   Call usernameTxtbox.SetText(usernameVal2)
+   Call passwordTxtbox.SetText(passwordVal2)
+   Call submitbtn.Click
+   Call Delay(2000)
+   Set browser = Sys.FindChild("ProcessName",browserVal,1)
+   Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),1)
+   Set hometab = page.FindChildByXPath("//a[contains(.,'Home')]")
+   Set requestmanagertab = page.FindChildByXPath("//a[contains(.,'Request Manager')]")
+   Set titlemanagertab = page.FindChildByXPath("//a[contains(.,'Title Manager')]")
+   If Not hometab is Nothing And Not requestmanagertab is Nothing And Not titlemanagertab is Nothing then
+     Log.Checkpoint("Request Holder login displays all 3 tabs")
+   Else
+     Log.Warning("Request Holder login Does Not display all 3 tabs")
+   End If
+   Set sentrequestslink = page.FindChildByXPath("//a[contains(.,'Sent Requests')]")
+   Set forreviewlink = page.FindChildByXPath("//a[contains(.,'For Review')]")
+   If Not sentrequestslink Is Nothing And Not forreviewlink Is Nothing then
+     Log.Checkpoint("Sent Requests And For review links Both shown for Request Holder login")
+   Else
+     Log.Warning("Sent Requests And For review links Both NOT shown for Request Holder login")
+   End If
+   Set titlemanagertab = page.FindChildByXPath("//a[contains(.,'Title Manager')]")
+   Call titlemanagertab.HoverMouse
+   
+   
+   
+   Set logOffLnk = page.FindChild(Array("idStr","VisibleOnScreen"),Array("ctl00_MenuLogin_LoginView1_LoginStatus1",True),15)
+   Call logOffLnk.Click
+   Call Delay(1000)
+   '# 
+   
+
+End Sub
+
+

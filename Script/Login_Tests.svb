@@ -1,0 +1,71 @@
+﻿'USEUNIT LIBRARY
+'USEUNIT LIBRARY_REQUESTMANAGER
+'USEUNIT LIBRARY_TITLEMANAGER
+
+
+Sub Login_Tests
+   Log.Message ("TestCase - Login_Tests")
+  browserVal = "chrome"
+  urlVal = "https://uat.plsclear.com"
+  '# 1. Valid credentials (should Allow login)
+  usernameVal1 = "mwagner"
+  passwordVal1 = "pinter629"
+  expectedresultVal1 = "pass"
+  '# 2. Invalid username & InValid password (Deny Login)
+  usernameVal2 = "cleartester"
+  passwordVal2 = "pinter" 
+  expectedresultVal2 = "fail"
+  '# 3. Valid username & Invalid password (Deny Login)
+  usernameVal3 = "mwagner"
+  passwordVal3 = "pinter" 
+  expectedresultVal3 = "fail"
+  '# 4. InValid username & Valid password (Deny Login)
+  usernameVal4 = "mwagner1"
+  passwordVal4 = "pinter629" 
+  expectedresultVal4 = "fail"
+  '# 5. UpperCase Username & Lowercase password (Allow Login)
+  usernameVal5 = "MWAGNER"
+  passwordVal5 = "pinter629" 
+  expectedresultVal5 = "pass"
+  '# 6. LowerCase Username & Uppercase password (Allow Login)
+  usernameVal6 = "mwagner"
+  passwordVal6 = "PINTER629" 
+  expectedresultVal6 = "pass"
+  '# 7. Username Only (Deny Login)
+  usernameVal7 = "mwagner"
+  passwordVal7 = ""
+  expectedresultVal7 = "fail"
+  
+    Call Launch_PLSclear(browserVal,urlVal)
+    Set browser = Sys.FindChild("ProcessName",browserVal,1) 
+    Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),10)
+
+     '# Scenario 1: Valid credentials 
+     Log.Message("Valid Username and Valid Password")
+     Call Login(browserVal,usernameVal1,passwordVal1,expectedresultVal1,"proceed")
+    
+     '# Scenario 2:  '# Invalid username & InValid password
+     Log.Message("InValid Username & InValid Password")
+     Call Login(browserVal,usernameVal2,passwordVal2,expectedresultVal2,"proceed")
+ 
+     '# Scenario 3: Valid username & Invalid password
+     Log.Message("Valid Username & InValid Password")
+     Call Login(browserVal,usernameVal3,passwordVal3,expectedresultVal3,"proceed")
+    
+     '# Scenario 4: InValid username & Valid password
+     Log.Message("InValid Username & Valid Password")
+     Call Login(browserVal,usernameVal4,passwordVal4,expectedresultVal4,"proceed")
+
+     '# Scenario 5: UpperCase Username & Lowercase password
+     Log.Message("Uppercase Username & Lowercase Password")
+     Call Login(browserVal,usernameVal5,passwordVal5,expectedresultVal5,"proceed")
+    
+     '# Scenario 6: LowerCase Username & Uppercase password
+     Log.Message("Lowercase Username & Uppercase Password")
+     Call Login(browserVal,usernameVal6,passwordVal6,expectedresultVal6,"proceed")
+    
+     '# Scenario 7: Username Only
+     Log.Message("Valid Username and Blank Password")
+     Call Login(browserVal,usernameVal7,passwordVal7,expectedresultVal7,"proceed")
+   
+End Sub

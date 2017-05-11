@@ -1,0 +1,239 @@
+﻿'USEUNIT LIBRARY
+'USEUNIT LIBRARY_REQUESTMANAGER
+'USEUNIT LIBRARY_TITLEMANAGER
+
+ ''TEST DESCRIPTION: This test is to set 'Parameters per content type' as 'No' for Author requests on FOC 
+                     '' programme and pushing a new request thru to check the status assigned to that request.
+ '' TEST CASE ID: FOC_tc5A_AuthorRequests_ParametersPerContentType_SetAsNo_PositiveTest
+
+  Sub FOC_tc5A_AuthorRequests_ParametersPerContentType_SetAsNo_PositiveTest
+       Log.Message("TestCase - FOC_tc5A_AuthorRequests_ParametersPerContentType_SetAsNo_PositiveTest")
+  ''*************************************************************************************  
+                                     ''## PARAMETERS
+  ''*************************************************************************************
+  ''## DATA SHEET REFERENCES
+   excelPath = "C:\Users\C4T\Desktop\PLSclearDDT.xlsx"
+   excelRowVal = 36
+   testExcelSheetName = "FOC_tc5A"
+   ''## opens Data Spreadsheet
+   Set objExcel = Sys.OleObject("Excel.Application")
+   objExcel.DisplayAlerts = 0
+   objExcel.Visible = True
+   objExcel.Workbooks.Open excelPath
+  
+   browserVal = GetDataFromExcel(excelPath,"Login",excelRowVal,1)
+   urlVal = GetDataFromExcel(excelPath,"Login",excelRowVal,2)
+   usernameVal = GetDataFromExcel(excelPath,"Login",excelRowVal,3)
+   passwordVal = GetDataFromExcel(excelPath,"Login",excelRowVal,4)
+   ''# Search
+   searchtypeVal = GetDataFromExcel(excelPath,"Search",excelRowVal,1)
+   searchVal = GetDataFromExcel(excelPath,"Search",excelRowVal,2)
+   resultVal = searchVal
+   ''# Select Content
+   textextractVal = GetDataFromExcel (excelPath,"Select Content",excelRowVal,1)
+   poemVal = GetDataFromExcel(excelPath,"Select Content",excelRowVal,2)
+   illustrationVal = GetDataFromExcel(excelPath,"Select Content",excelRowVal,3)
+   tableVal = GetDataFromExcel(excelPath,"Select Content",excelRowVal,4)
+   articleVal = GetDataFromExcel(excelPath,"Select Content",excelRowVal,5)
+   ''# Details of Content
+   noofwordsVal = GetDataFromExcel(excelPath,"Details of Content",excelRowVal,1)
+   pagenoVal = GetDataFromExcel(excelPath,"Details of Content",excelRowVal,2)
+   nameofthepoemVal = GetDataFromExcel(excelPath,"Details of Content",excelRowVal,3)
+   reproductioncolourVal = GetDataFromExcel(excelPath,"Details of Content",excelRowVal,4)
+   reproductionsizeVal = GetDataFromExcel(excelPath,"Details of Content",excelRowVal,5)
+   figurenumber_titleVal  = GetDataFromExcel(excelPath,"Details of Content",excelRowVal,6)
+   pagenumberVal = GetDataFromExcel(excelPath,"Details of Content",excelRowVal,7)
+   pagerangeVal = GetDataFromExcel(excelPath,"Details of Content",excelRowVal,8)
+   issuedateVal = GetDataFromExcel(excelPath,"Details of Content",excelRowVal,9)
+   yearofpublicationVal = GetDataFromExcel(excelPath,"Details of Content",excelRowVal,10)
+   reuseprojectswitchVal = GetDataFromExcel(excelPath,"Details of Content",excelRowVal,11)
+   areyouauthorVal = GetDataFromExcel(excelPath,"Details of Content",excelRowVal,14)
+   ''##  Select Planned Use 
+   usagetypeVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,4)
+   usagesubtypeVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,5)
+   ''## 'Details of Usage' (Mandatory parameters ONLY)
+   purposeVal = GetDataFromExcel(excelPath,"Details of Content",excelRowVal,12)
+   sectorVal = GetDataFromExcel(excelPath,"Details of Content",excelRowVal,13)
+   territoriesVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,7)
+   printrunVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,8)
+   retailpriceVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,9)
+   estimatedsalesVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,10)
+   estimatedCDsalesVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,11)
+   estimateddownloadsalesVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,12)
+   audiencerestrictedinanywayVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,13)
+   expectednumberofvisitorsVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,14)
+   circulationVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,15)
+   openaccessVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,16)
+   estimatednumberofticketsalesVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,17)
+   numberofslidesVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,18)
+   totalruntimeVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,19)
+   numberofusersVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,20)
+   formatVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,21)
+   methodofdistributionVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,22)
+   periodoftimeVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,23)
+   perioddownloadisactiveVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,24)
+   numberofstudentsusingVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,25)
+   numberofpagesVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,26)
+   ''------------------------------------------------------------------------------------------
+   ''###############'# FOC Bulk settings
+   ''### Requests for Thesis and Dissertations
+   optalltitlesVal = GetDataFromExcel(excelPath,testExcelSheetName,32,3)
+   ''---------------------------------------------------------
+   ''# All Dissertation or Thesis requests:
+   thesisVal = GetDataFromExcel(excelPath,testExcelSheetName,4,3)
+   ''# Do you want to set parameters per content type?:
+   thesispercontentVal = GetDataFromExcel(excelPath,testExcelSheetName,5,3)
+   ''# Maximum word count:  
+   tdwordcountVal = GetDataFromExcel(excelPath,testExcelSheetName,6,3)
+   ''# Maximum number Tables & Charts 
+   tdtablecountVal = GetDataFromExcel(excelPath,testExcelSheetName,7,3)
+   ''# Maximum number Illustrations & Diagrams  
+   tddiagramcountVal = GetDataFromExcel(excelPath,testExcelSheetName,8,3) 
+   ''### Author Requests
+   ''---------------------------------------------------------
+   ''# All Author requests to re-use their own work
+   authorrequestVal = GetDataFromExcel(excelPath,testExcelSheetName,12,3)
+   ''# Do you want to set parameters per content type?
+   authorpercontentVal = GetDataFromExcel(excelPath,testExcelSheetName,13,3)
+   ''# Maximum word count:  
+   awordcountVal = GetDataFromExcel(excelPath,testExcelSheetName,14,3)
+   ''# Maximum number Tables & Charts  
+   atablecountVal = GetDataFromExcel(excelPath,testExcelSheetName,15,3)
+   ''# Maximum number Illustrations & Diagrams 
+   adiagramcountVal = GetDataFromExcel(excelPath,testExcelSheetName,16,3) 
+   ''### Other Requests
+   ''----------------------------------------------------------
+   ''# Maximum word count:
+   owordcountVal = GetDataFromExcel(excelPath,testExcelSheetName,20,3)
+   ''# Maximum number Tables & Charts  
+   otablecountVal = GetDataFromExcel(excelPath,testExcelSheetName,21,3)
+   ''# Maximum number Illustrations & Diagrams  
+   odiagramcountVal = GetDataFromExcel(excelPath,testExcelSheetName,22,3)
+   ''# Do you want to set circulation by format?  
+   ocircbyformatVal = GetDataFromExcel(excelPath,testExcelSheetName,24,3) 
+   ''# Maximum total circulation:  
+   ototalcircVal = GetDataFromExcel(excelPath,testExcelSheetName,25,3)
+   ''# Maximum print circulation:  
+   oprintcircVal = GetDataFromExcel(excelPath,testExcelSheetName,26,3)
+   ''# Maximum Ebook circulation:  
+   oebookcircVal = GetDataFromExcel(excelPath,testExcelSheetName,27,3)
+   ''# Maximum web circulation:  
+   owebcircVal = GetDataFromExcel(excelPath,testExcelSheetName,28,3)
+   ''# Territory   
+   oterritoryVal = GetDataFromExcel(excelPath,testExcelSheetName,29,3)
+   ''# Automation Level Or ssue of FoC licences
+   autolevelValFOC = GetDataFromExcel(excelPath,testExcelSheetName,30,3) 
+   ''-------------------------------------------------------------------
+     ''***************************************************************************************************
+     ''                                 End of Parameters
+     ''***************************************************************************************************
+     
+     
+     ''###################################################################################################
+     ''                                      SCRIPT  
+     ''###################################################################################################
+      ''## Launches PLS clear 
+      Call Launch_PLSclear(browserVal,urlVal)
+      Set browser = Sys.FindChild("ProcessName",browserVal,1)
+      Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),1)
+      
+      '# Close Additional dialogue (Do you want to leave this site?) that comes up when previous request session is to be aborted
+      Call ActionOnAlertDialog(browserVal,"Yes")
+      '# Login
+      Call Login(browserVal,usernameVal,passwordVal,"pass","stop")
+      ''## Close any dialogues that appears on screen
+      Call ActionOnAlertDialog(browserVal,"Yes")
+      ''## Set FOC programme for all the titles
+      folder1 = Log.CreateFolder("Sets FPL Programme settings")
+      Log.PushLogFolder(folder1)
+      Call Set_Bulk_FOC_programme(browserVal,focparam_Arr)
+      Log.PopLogFolder()
+      
+      ''### Get one of the title falling under FPL programme and make a request on it
+       Call Get_Programme_Title(browserVal,issn1,searchVal) 
+      
+      ''###################### Make a new request on excluded title ###############
+      folder2 = Log.CreateFolder("A new request is made")
+      Log.PushLogFolder(folder2)
+      ''## SEARCH FOR A TITLE
+      Call SearchTitle(browserVal,searchtypeVal,issn1)
+      ''## SELECT A TITLE FROM THE SEARCH RESULTS
+      Call SelectSearchResult(browserVal,issn1,issn1)
+      ''## SELECT CONTENT
+      Call SelectContent(browserVal,textextractVal,poemVal,illustrationVal,tableVal,articleVal)
+      ''## DETAILS OF CONTENT
+      Call Details_of_Content_MandatoryParameters(DetofContentParamsArr)
+      ''## SELECT PLANNED USE
+      If reuseprojectswitchVal = "No" then
+        Call SelectPlannedUsage(browserVal,usagetypeVal,usagesubtypeVal,reuseprojectswitchVal)
+        Set continuebtn = page.FindChild("className","buttonNext",25)
+        Call continuebtn.Click
+      End If
+      ''## DETAILS OF USAGE
+      If reuseprojectswitchVal = "No" then
+        Call DetailsOfUsage_mandatoryparameters(browserVal, ArrDetofusageParams)
+       End If
+      ''## REVIEW REQUEST
+       Call Review_Request(browserVal)
+     
+      Log.PopLogFolder()
+      ''################################################################################
+      
+      ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+      '## REQUEST MANAGER
+      '## Verifies if Request is made Succesfully and the request title is found in the top row of the Request Manager table
+      Log.Message("Navigates to Request Manager page to check the request status")
+      Set browser = Sys.FindChild("ProcessName",browserVal,1)
+      Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),10)
+      Set sentrequestslink = page.FindChildByXPath("//a[contains(.,'Sent Requests')]")
+      Call sentrequestslink.Click
+      Call Delay(1000)
+      Call browser.Refresh
+      Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),10)
+      ''## Checkpoint
+      Log.Message("Beginning of the Checkpoint to verify the status of the request made on Excluded title")
+      Set rmtable = page.FindChildByXPath("//table")
+      statuscolumnId = rmtable.FindChildByXPath("//th[contains(.,'Status')]").ColumnIndex
+      If rmtable.Cell(1, statuscolumnId).TextNode(0).title = "Licensed" then
+        Log.Checkpoint("TEST PASSED: AuthorRequests_ParametersPerContentType_SetAsNo Passed Test")
+        Log.Message("Status shown for the request is: "& rmtable.Cell(1, statuscolumnId).TextNode(0).title)
+      Else  
+        Log.Error("TEST FAILED: AuthorRequests_ParametersPerContentType_SetAsNo Failed Test")
+          Log.Warning("Status shown for the request is: "& rmtable.Cell(1, statuscolumnId).TextNode(0).title)
+      End If
+      Log.Picture(rmtable)
+      
+      ''###############################################################################
+      ''## Reset the programme
+      ''###############################################################################
+      
+      folder3 = Log.CreateFolder("Below actions are to Reset the Programme to default settings")
+      Log.PushLogFolder(folder3)
+      ''## Reset the programme to default programme settings.   
+       thesisVal = GetDataFromExcel(excelPath,"FOC Default",4,3)
+       thesispercontentVal = GetDataFromExcel(excelPath,"FOC Default",5,3)
+       tdwordcountVal = GetDataFromExcel(excelPath,"FOC Default",6,3)
+       tdtablecountVal = GetDataFromExcel(excelPath,"FOC Default",7,3)
+       tddiagramcountVal = GetDataFromExcel(excelPath,"FOC Default",8,3) 
+       authorrequestVal = GetDataFromExcel(excelPath,"FOC Default",12,3)
+       authorpercontentVal = GetDataFromExcel(excelPath,"FOC Default",13,3)
+       awordcountVal = GetDataFromExcel(excelPath,"FOC Default",14,3)
+       atablecountVal = GetDataFromExcel(excelPath,"FOC Default",15,3)
+       adiagramcountVal = GetDataFromExcel(excelPath,"FOC Default",16,3) 
+       owordcountVal = GetDataFromExcel(excelPath,"FOC Default",20,3)
+       otablecountVal = GetDataFromExcel(excelPath,"FOC Default",21,3)
+       odiagramcountVal = GetDataFromExcel(excelPath,"FOC Default",22,3)
+       ocircbyformatVal = GetDataFromExcel(excelPath,"FOC Default",24,3) 
+       ototalcircVal = GetDataFromExcel(excelPath,"FOC Default",25,3)
+       oprintcircVal = GetDataFromExcel(excelPath,"FOC Default",25,3)
+       oebookcircVal = GetDataFromExcel(excelPath,"FOC Default",25,3)
+       owebcircVal = GetDataFromExcel(excelPath,"FOC Default",25,3)
+       oterritoryVal = GetDataFromExcel(excelPath,"FOC Default",29,3)
+       autolevelValFOC = GetDataFromExcel(excelPath,"FOC Default",30,3) 
+      Call Set_Bulk_FOC_programme(browserVal,focparam_Arr)
+      Log.PopLogFolder()
+      ''# Close Excel instance
+      objExcel.Quit
+      Set objExcel = Nothing
+      
+   End Sub

@@ -1,0 +1,96 @@
+﻿'USEUNIT LIBRARY
+'USEUNIT LIBRARY_REQUESTMANAGER
+'USEUNIT LIBRARY_TITLEMANAGER
+
+''## Description: Logins as a Request holder and issues FPL licence manually for the request on Pending status. Verifies the status of the request.
+
+
+Sub STAT_tc7_LicenceIssued_ManualFPLLicence
+   Log.Message("Test - STAT_tc7_LicenceIssued_ManualFPLLicence")
+   '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+   excelPath = "C:\Users\C4T\Desktop\PLSclearDDT.xlsx"
+   excelRowVal = 51
+   Set objExcel = Sys.OleObject("Excel.Application")
+   objExcel.DisplayAlerts = 0
+   objExcel.Visible = True
+   objExcel.Workbooks.Open excelPath
+   
+   licencefilenameVal = "PLSclear FPL licence.pdf"
+   
+   browserVal = GetDataFromExcel(excelPath,"Login",excelRowVal,1)
+   urlVal = GetDataFromExcel(excelPath,"Login",excelRowVal,2)
+   ''## Rights Holder Login credentials
+   usernameVal = GetDataFromExcel(excelPath,"Login",excelRowVal,3)
+   passwordVal = GetDataFromExcel(excelPath,"Login",excelRowVal,4) 
+  
+    ''####################  SCRIPT  ################################################################
+    ''## Launch the PLS clear in required browser
+    Call Launch_PLSclear(browserVal,urlVal)
+    Set browser = Sys.FindChild("ProcessName",browserVal,1)
+    Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),1)
+    ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    ''## Login as requestor
+    '# Close Additional dialogue (Do you want to leave this site?) that comes up when previous request session is to be aborted
+    Call ActionOnAlertDialog(browserVal,"Yes")
+    '# Login
+    Call Login(browserVal,usernameVal,passwordVal,"pass","stop")
+    ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    ''## Close any dialogues that appears on screen
+    Call ActionOnAlertDialog(browserVal,"Yes")
+     ''## Navigate to Request Manager
+    Call NavigateToPage(browserVal,"Request Manager")
+    ''## Search for a Request which is on 'Pending' status
+    Call SelectRequestByValue(browserVal,"Pending",tID) 
+    Call Delay(3000)
+    Set assisttaskstatus = page.FindChild("ObjectIdentifier","ddTaskStatus",25)
+    Call assisttaskstatus.scrollIntoView(1)
+    Call assisttaskstatus.ClickItem("Issue Licence")
+    Call Delay(2000)
+    Call page.FindChild(Array("ObjectIdentifier","Width"),Array("txtLicencedComment","regexp:[^0]+"),25).Keys("test comment")
+    Call page.FindChild(Array("ObjectIdentifier","Width"),Array("fileLicencedUpload","regexp:[^0]+"),25).Click
+    Call Delay(2000)
+    Set wnddialog = browser.FindChild(Array("WndCaption","ObjectType","Width"),Array("Open","Dialog","regexp:[^0]+"),5)
+    Call wnddialog.FindChild("WndClass","ToolbarWindow32",5).Keys("^a" & "[Del]")
+    Call wnddialog.FindChild("WndClass","ToolbarWindow32",5).Keys("Desktop" & "[Enter]")
+    Call wnddialog.FindChild(Array("ObjectIdentifier","Width","WndClass"),Array("File name:","regexp:[^0]+","ComboBox"),25).Keys(licencefilenameVal)
+    Call wnddialog.FindChild(Array("WndClass","ObjectIdentifier","Width"),Array("Button","Open","regexp:[^0]+"),5).Click
+    Call page.FindChild(Array("ObjectLabel","ObjectIdentifier","Width"),Array("Upload","Button14","regexp:[^0]+"),25).Click
+    Call Delay(3000)
+    Set applybtn = page.FindChild(Array("ObjectType","value","Width"),Array("SubmitButton","Apply","regexp:[^0]+"),25)
+    Call applybtn.Click
+    Call delay(10000)
+    Call page.Refresh
+    Set browser = Sys.FindChild("ProcessName",browserVal,1)
+    Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),1)
+    Set rmtable = page.FindChildByXPath("//table")
+     Do 
+     If Not rmtable is nothing then
+       Exit Do
+     Else
+       Set rmtable = page.FindChildByXPath("//table")
+     End If
+     Loop
+     Do
+     If rmtable.Enabled then
+       Exit Do
+     Else
+       Set rmtable = page.FindChildByXPath("//table")
+     End If
+     Loop 
+    vRowIndex = rmtable.FindChild(Array("ColumnIndex","contentText"),Array("0",tID),3).RowIndex
+    Log.Message("ID "& tID &" has been moved to Row " & vRowIndex &" after quotation was issued")
+    statuscolumnId = rmtable.FindChildByXPath("//th[contains(.,'Status')]").ColumnIndex
+    Set vcell = rmtable.FindChild(Array("RowIndex","ColumnIndex"),Array(vRowIndex,statuscolumnId),3)
+    If InStr(vcell.outerHTML,"Licensed") <> 0 then
+     Log.Checkpoint("'LicenceIssued_ManualFPLLicenceByRH' Passed Test. 'Licensed' status is shown for Request Id: "& tID)
+    Else
+     Log.Warning("'LicenceIssued_ManualFPLLicenceByRH' Failed Test. 'Licensed' status is NOT shown for Request Id: "& tID)
+     Log.Message(vcell.outerHTML)
+    End If
+    Log.Picture(rmtable)
+    ''# Close Excel instance
+    objExcel.Quit
+    Set objExcel = Nothing
+
+End Sub
+

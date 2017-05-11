@@ -1,0 +1,30 @@
+﻿'USEUNIT LIBRARY
+'USEUNIT LIBRARY_REQUESTMANAGER
+'USEUNIT LIBRARY_TITLEMANAGER
+
+  
+ 
+
+
+Sub z_DRAFT_SCRIPT
+   excelPath = "C:\Users\C4T\Desktop\PLSclearDDT.xlsx"
+   browserVal = "chrome"
+   urlVal = "*uat.plsclear.com"
+   Set browser = Sys.FindChild("ProcessName",browserVal,2)
+   Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),5) 
+   usernameVal1 = "mwagner"
+  passwordVal1 = "pinter629"
+ 
+  
+   
+   
+   
+  
+  
+  
+ 
+End Sub
+
+
+
+ 

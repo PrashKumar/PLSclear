@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Root signature="{24B6FA0B-0143-461A-9758-AEB9E9A9428B}" version="12.0" key="{ED0D6BF4-77EB-4F9A-831B-91DD9EE93A40}">
+	<children>
+		<child name="PLSclear" key="{3095044D-2F23-43E2-81E7-DD4FE688192A}" type="Project" typeId="{362A8EE5-675E-43A9-869D-06ECE80B0CB4}" pluginName="">
+			<data path="PLSclear\PLSclear.mds" />
+		</child>
+	</children>
+	<folders />
+	<testItems key="{A315F929-1D30-4719-95F5-C8DB73437B82}">
+		<children>
+			<testItem key="{3095044D-2F23-43E2-81E7-DD4FE688192A}" enabled="True" timeout="0" stopOnError="True" description="" />
+		</children>
+	</testItems>
+	<variables key="{01F11F03-3691-4C42-B365-18245999ED4D}">
+		<data Version="3" />
+	</variables>
+	<analysis key="{305AB6B4-B534-492A-A21D-26483414CBFB}" />
+	<scc key="{C900492B-D218-429C-9AA0-264B7D78CA88}" name="Git Plugin">
+		<data />
+	</scc>
+</Root>

@@ -1,0 +1,741 @@
+﻿'USEUNIT LIBRARY
+'USEUNIT LIBRARY_REQUESTMANAGER
+'USEUNIT LIBRARY_TITLEMANAGER
+
+''## Description: Logins as a Request holder and pushes through a request that falls under automated FPL. Verifies the status of the request.
+
+Sub STAT_tc11_QuotationSent_AutomatedFPLQuotation
+   Log.Message("TestCase - STAT_tc11_QuotationSent_AutomatedFPLQuotation")
+   
+   ''*************************************************************************************  
+                                     ''## PARAMETERS
+  ''*************************************************************************************
+  ''## DATA SHEET REFERENCES
+   excelPath = "C:\Users\C4T\Desktop\PLSclearDDT.xlsx"
+   excelRowVal = 55
+   testExcelSheetName = "FPL_tc10B"
+   ''## opens Data Spreadsheet
+   Set objExcel = Sys.OleObject("Excel.Application")
+   objExcel.DisplayAlerts = 0
+   objExcel.Visible = True
+   objExcel.Workbooks.Open excelPath
+  
+   
+   browserVal = GetDataFromExcel(excelPath,"Login",excelRowVal,1)
+   urlVal = GetDataFromExcel(excelPath,"Login",excelRowVal,2)
+   usernameVal = GetDataFromExcel(excelPath,"Login",excelRowVal,3)
+   passwordVal = GetDataFromExcel(excelPath,"Login",excelRowVal,4)
+   ''# Search
+   searchtypeVal = GetDataFromExcel(excelPath,"Search",excelRowVal,1)
+   searchVal = GetDataFromExcel(excelPath,"Search",excelRowVal,2)
+   resultVal = searchVal
+   ''# Select Content
+   textextractVal = GetDataFromExcel (excelPath,"Select Content",excelRowVal,1)
+   poemVal = GetDataFromExcel(excelPath,"Select Content",excelRowVal,2)
+   illustrationVal = GetDataFromExcel(excelPath,"Select Content",excelRowVal,3)
+   tableVal = GetDataFromExcel(excelPath,"Select Content",excelRowVal,4)
+   articleVal = GetDataFromExcel(excelPath,"Select Content",excelRowVal,5)
+   ''# Details of Content
+   noofwordsVal = GetDataFromExcel(excelPath,"Details of Content",excelRowVal,1)
+   pagenoVal = GetDataFromExcel(excelPath,"Details of Content",excelRowVal,2)
+   nameofthepoemVal = GetDataFromExcel(excelPath,"Details of Content",excelRowVal,3)
+   reproductioncolourVal = GetDataFromExcel(excelPath,"Details of Content",excelRowVal,4)
+   reproductionsizeVal = GetDataFromExcel(excelPath,"Details of Content",excelRowVal,5)
+   figurenumber_titleVal  = GetDataFromExcel(excelPath,"Details of Content",excelRowVal,6)
+   pagenumberVal = GetDataFromExcel(excelPath,"Details of Content",excelRowVal,7)
+   pagerangeVal = GetDataFromExcel(excelPath,"Details of Content",excelRowVal,8)
+   issuedateVal = GetDataFromExcel(excelPath,"Details of Content",excelRowVal,9)
+   yearofpublicationVal = GetDataFromExcel(excelPath,"Details of Content",excelRowVal,10)
+   reuseprojectswitchVal = GetDataFromExcel(excelPath,"Details of Content",excelRowVal,11)
+   areyouauthorVal = GetDataFromExcel(excelPath,"Details of Content",excelRowVal,14)
+   ''##  Select Planned Use 
+   usagetypeVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,4)
+   usagesubtypeVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,5)
+   ''## 'Details of Usage' (Mandatory parameters ONLY)
+   purposeVal = GetDataFromExcel(excelPath,"Details of Content",excelRowVal,12)
+   sectorVal = GetDataFromExcel(excelPath,"Details of Content",excelRowVal,13)
+   territoriesVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,7)
+   printrunVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,8)
+   retailpriceVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,9)
+   estimatedsalesVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,10)
+   estimatedCDsalesVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,11)
+   estimateddownloadsalesVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,12)
+   audiencerestrictedinanywayVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,13)
+   expectednumberofvisitorsVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,14)
+   circulationVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,15)
+   openaccessVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,16)
+   estimatednumberofticketsalesVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,17)
+   numberofslidesVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,18)
+   totalruntimeVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,19)
+   numberofusersVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,20)
+   formatVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,21)
+   methodofdistributionVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,22)
+   periodoftimeVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,23)
+   perioddownloadisactiveVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,24)
+   numberofstudentsusingVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,25)
+   numberofpagesVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,26)
+   ''###############'# FPL Bulk settings
+     ''##  Format Parameters
+     hardbackcheckVal = GetDataFromExcel(excelPath,testExcelSheetName,5,4)
+     paperbackcheckVal = GetDataFromExcel(excelPath,testExcelSheetName,6,4)
+     magazinecheckVal = GetDataFromExcel(excelPath,testExcelSheetName,7,4)
+     advertcheckVal = GetDataFromExcel(excelPath,testExcelSheetName,8,4)
+     ebookcheckVal = GetDataFromExcel(excelPath,testExcelSheetName,10,4)
+     onlineeditioncheckVal = GetDataFromExcel(excelPath,testExcelSheetName,11,4)
+     downloadfilecheckVal = GetDataFromExcel(excelPath,testExcelSheetName,12,4)
+     webpagecheckVal = GetDataFromExcel(excelPath,testExcelSheetName,13,4)
+     livestreamcheckVal = GetDataFromExcel(excelPath,testExcelSheetName,14,4)
+     appcheckVal = GetDataFromExcel(excelPath,testExcelSheetName,15,4)
+     audiobookcheckVal = GetDataFromExcel(excelPath,testExcelSheetName,17,4)
+     podcastcheckVal = GetDataFromExcel(excelPath,testExcelSheetName,18,4)
+     radiocheckVal = GetDataFromExcel(excelPath,testExcelSheetName,19,4)
+     tvcheckVal = GetDataFromExcel(excelPath,testExcelSheetName,21,4)
+     presentationscheckVal = GetDataFromExcel(excelPath,testExcelSheetName,22,4)
+     printcoursepackcheckVal = GetDataFromExcel(excelPath,testExcelSheetName,24,4)
+     electroniccoursepackcheckVal = GetDataFromExcel(excelPath,testExcelSheetName,25,4)
+     thesischeckVal = GetDataFromExcel(excelPath,testExcelSheetName,26,4)
+     ''## Rights Granted Parameters
+     circulationrestrictionsVal = GetDataFromExcel(excelPath,testExcelSheetName,28,4)
+     maxtotalcirculationVal = GetDataFromExcel(excelPath,testExcelSheetName,29,4)
+     maxprintcirculationVal = GetDataFromExcel(excelPath,testExcelSheetName,30,4) 
+     maxebookcirculationVal = GetDataFromExcel(excelPath,testExcelSheetName,31,4)
+     maxwebcirculationVal = GetDataFromExcel(excelPath,testExcelSheetName,32,4)
+     fplterritoryVal = GetDataFromExcel(excelPath,testExcelSheetName,33,4)
+     languageVal = GetDataFromExcel(excelPath,testExcelSheetName,34,4)
+     lifetimelicenceVal = GetDataFromExcel(excelPath,testExcelSheetName,35,4)
+     yearsoflicenceVal = GetDataFromExcel(excelPath,testExcelSheetName,36,4)
+     yearsoflicenceVal = GetDataFromExcel(excelPath,testExcelSheetName,37,4)
+     ''## PRICE SETTINGS Parameters
+     ''# SECTOR
+     pricebysectorcheckboxVal = GetDataFromExcel(excelPath,testExcelSheetName,42,4)
+     useonepriceforallsectorsVal = GetDataFromExcel(excelPath,testExcelSheetName,43,4)
+     setindividualpricespersectorVal = GetDataFromExcel(excelPath,testExcelSheetName,44,4) 
+     ''## all sectors
+     sectorwordsVal = GetDataFromExcel(excelPath,testExcelSheetName,46,4) 
+     sectorwordsreviewcheckboxVal = GetDataFromExcel(excelPath,testExcelSheetName,46,5) 
+     sectortableVal = GetDataFromExcel(excelPath,testExcelSheetName,46,6) 
+     sectortablereviewcheckboxVal = GetDataFromExcel(excelPath,testExcelSheetName,46,7) 
+     sectorimageVal = GetDataFromExcel(excelPath,testExcelSheetName,46,8) 
+     sectorimagereviewcheckboxVal = GetDataFromExcel(excelPath,testExcelSheetName,46,9) 
+     ''## per sector
+     sectorVal0 = GetDataFromExcel(excelPath,testExcelSheetName,47,2) 
+     sectorVal1 = GetDataFromExcel(excelPath,testExcelSheetName,48,2) 
+     sectorVal2 = GetDataFromExcel(excelPath,testExcelSheetName,49,2) 
+     sectorVal3 = GetDataFromExcel(excelPath,testExcelSheetName,50,2) 
+     sectorVal4 = GetDataFromExcel(excelPath,testExcelSheetName,51,2) 
+     sectorwordsVal0 = GetDataFromExcel(excelPath,testExcelSheetName,47,4) 
+     sectorwordsVal1 = GetDataFromExcel(excelPath,testExcelSheetName,48,4) 
+     sectorwordsVal2 = GetDataFromExcel(excelPath,testExcelSheetName,49,4) 
+     sectorwordsVal3 = GetDataFromExcel(excelPath,testExcelSheetName,50,4) 
+     sectorwordsVal4 = GetDataFromExcel(excelPath,testExcelSheetName,51,4) 
+     sectorwordsreviewcheckboxVal0 = GetDataFromExcel(excelPath,testExcelSheetName,47,5) 
+     sectorwordsreviewcheckboxVal1 = GetDataFromExcel(excelPath,testExcelSheetName,48,5) 
+     sectorwordsreviewcheckboxVal2 = GetDataFromExcel(excelPath,testExcelSheetName,49,5) 
+     sectorwordsreviewcheckboxVal3 = GetDataFromExcel(excelPath,testExcelSheetName,50,5) 
+     sectorwordsreviewcheckboxVal4 = GetDataFromExcel(excelPath,testExcelSheetName,51,5) 
+     sectortableVal0 = GetDataFromExcel(excelPath,testExcelSheetName,47,6) 
+     sectortableVal1 = GetDataFromExcel(excelPath,testExcelSheetName,48,6) 
+     sectortableVal2 = GetDataFromExcel(excelPath,testExcelSheetName,49,6) 
+     sectortableVal3 = GetDataFromExcel(excelPath,testExcelSheetName,50,6) 
+     sectortableVal4 = GetDataFromExcel(excelPath,testExcelSheetName,51,6) 
+     sectortablereviewcheckboxVal0 = GetDataFromExcel(excelPath,testExcelSheetName,47,7) 
+     sectortablereviewcheckboxVal1 = GetDataFromExcel(excelPath,testExcelSheetName,48,7) 
+     sectortablereviewcheckboxVal2 = GetDataFromExcel(excelPath,testExcelSheetName,49,7) 
+     sectortablereviewcheckboxVal3 = GetDataFromExcel(excelPath,testExcelSheetName,50,7) 
+     sectortablereviewcheckboxVal4 = GetDataFromExcel(excelPath,testExcelSheetName,51,7) 
+     sectorimageVal0 = GetDataFromExcel(excelPath,testExcelSheetName,47,8) 
+     sectorimageVal1 = GetDataFromExcel(excelPath,testExcelSheetName,48,8) 
+     sectorimageVal2 = GetDataFromExcel(excelPath,testExcelSheetName,49,8) 
+     sectorimageVal3 = GetDataFromExcel(excelPath,testExcelSheetName,50,8) 
+     sectortableVal4 = GetDataFromExcel(excelPath,testExcelSheetName,51,8)
+     sectorimagereviewcheckboxVal0 = GetDataFromExcel(excelPath,testExcelSheetName,47,9) 
+     sectorimagereviewcheckboxVal1 = GetDataFromExcel(excelPath,testExcelSheetName,48,9) 
+     sectorimagereviewcheckboxVal2 = GetDataFromExcel(excelPath,testExcelSheetName,49,9) 
+     sectorimagereviewcheckboxVal3 = GetDataFromExcel(excelPath,testExcelSheetName,50,9) 
+     sectorimagereviewcheckboxVal4 = GetDataFromExcel(excelPath,testExcelSheetName,51,10) 
+     ''# PURPOSE OF USE PARAMETERS
+     pricebypurposecheckboxVal = GetDataFromExcel(excelPath,testExcelSheetName,53,4) 
+     useonepriceforallpurposeVal = GetDataFromExcel(excelPath,testExcelSheetName,54,4)
+     setindividualpricesperpurposeVal = GetDataFromExcel(excelPath,testExcelSheetName,55,4) 
+     '# all purposes of use
+     purposewordsVal = GetDataFromExcel(excelPath,testExcelSheetName,57,4) 
+     purposewordsreviewcheckboxVal = GetDataFromExcel(excelPath,testExcelSheetName,57,5) 
+     purposetableVal = GetDataFromExcel(excelPath,testExcelSheetName,57,6) 
+     purposetablereviewcheckboxVal = GetDataFromExcel(excelPath,testExcelSheetName,57,7) 
+     purposeimageVal = GetDataFromExcel(excelPath,testExcelSheetName,57,8) 
+     purposeimagereviewcheckboxVal = GetDataFromExcel(excelPath,testExcelSheetName,57,9) 
+    ''# Per purpose
+     purposeVal0 = GetDataFromExcel(excelPath,testExcelSheetName,58,2) 
+     purposeVal1 = GetDataFromExcel(excelPath,testExcelSheetName,59,2) 
+     purposeVal2 = GetDataFromExcel(excelPath,testExcelSheetName,60,2) 
+     purposewordsVal0 = GetDataFromExcel(excelPath,testExcelSheetName,58,4) 
+     purposewordsVal1 = GetDataFromExcel(excelPath,testExcelSheetName,59,4) 
+     purposewordsVal2 = GetDataFromExcel(excelPath,testExcelSheetName,60,4)
+     purposewordsreviewcheckboxVal0 = GetDataFromExcel(excelPath,testExcelSheetName,58,5) 
+     purposewordsreviewcheckboxVal1 = GetDataFromExcel(excelPath,testExcelSheetName,59,5) 
+     purposewordsreviewcheckboxVal2 = GetDataFromExcel(excelPath,testExcelSheetName,60,5) 
+     purposetableVal0 = GetDataFromExcel(excelPath,testExcelSheetName,58,6) 
+     purposetableVal1 = GetDataFromExcel(excelPath,testExcelSheetName,59,6) 
+     purposetableVal2 = GetDataFromExcel(excelPath,testExcelSheetName,60,6) 
+     purposetablereviewcheckboxVal0 = GetDataFromExcel(excelPath,testExcelSheetName,58,7) 
+     purposetablereviewcheckboxVal1 = GetDataFromExcel(excelPath,testExcelSheetName,59,7) 
+     purposetablereviewcheckboxVal2 = GetDataFromExcel(excelPath,testExcelSheetName,60,7) 
+     purposeimageVal0 = GetDataFromExcel(excelPath,testExcelSheetName,58,8) 
+     purposeimageVal1 = GetDataFromExcel(excelPath,testExcelSheetName,59,8) 
+     purposeimageVal2 = GetDataFromExcel(excelPath,testExcelSheetName,60,8) 
+     purposeimagereviewcheckboxVal0 = GetDataFromExcel(excelPath,testExcelSheetName,58,9) 
+     purposeimagereviewcheckboxVal1 = GetDataFromExcel(excelPath,testExcelSheetName,59,9) 
+     purposeimagereviewcheckboxVal2 = GetDataFromExcel(excelPath,testExcelSheetName,60,9) 
+    ''# CIRCULATION VALUE Parameters
+     pricebycirculationcheckboxVal = GetDataFromExcel(excelPath,testExcelSheetName,62,4) 
+     useonepriceforallcirculationVal = GetDataFromExcel(excelPath,testExcelSheetName,63,4)
+     setindividualpricespercirculationVal = GetDataFromExcel(excelPath,testExcelSheetName,64,4) 
+    '# all circulations
+     circulationwordsVal = GetDataFromExcel(excelPath,testExcelSheetName,66,4) 
+     circulationwordsreviewcheckboxVal = GetDataFromExcel(excelPath,testExcelSheetName,66,5) 
+     circulationtableVal = GetDataFromExcel(excelPath,testExcelSheetName,66,6) 
+     circulationtablereviewcheckboxVal = GetDataFromExcel(excelPath,testExcelSheetName,66,7)  
+     circulationimageVal = GetDataFromExcel(excelPath,testExcelSheetName,66,8)
+     circulationimagereviewcheckboxVal = GetDataFromExcel(excelPath,testExcelSheetName,66,9) 
+    ''## per circulation
+       ''## Circulation levels parameters (comment the ones that are not used).
+       ''## Note that circulation + x + val is circulation level lower boundary and circulation + y + val is upper boundary
+         ''## on the circulation bands on UI.
+     circulationxVal0 = GetDataFromExcel(excelPath,testExcelSheetName,67,1)
+     circulationxVal1 = GetDataFromExcel(excelPath,testExcelSheetName,68,1)
+     circulationxVal2 = GetDataFromExcel(excelPath,testExcelSheetName,69,1)
+     circulationxVal3 = GetDataFromExcel(excelPath,testExcelSheetName,70,1)
+     circulationxVal4 = GetDataFromExcel(excelPath,testExcelSheetName,71,1)
+     circulationxVal5 = GetDataFromExcel(excelPath,testExcelSheetName,72,1)
+     circulationxVal6 = GetDataFromExcel(excelPath,testExcelSheetName,73,1)
+     circulationxVal7 = GetDataFromExcel(excelPath,testExcelSheetName,74,1)
+     circulationyVal0 = GetDataFromExcel(excelPath,testExcelSheetName,67,2)
+     circulationyVal1 = GetDataFromExcel(excelPath,testExcelSheetName,68,2)
+     circulationyVal2 = GetDataFromExcel(excelPath,testExcelSheetName,69,2)
+     circulationyVal3 = GetDataFromExcel(excelPath,testExcelSheetName,70,2)
+     circulationyVal4 = GetDataFromExcel(excelPath,testExcelSheetName,71,2)
+     circulationyVal5 = GetDataFromExcel(excelPath,testExcelSheetName,72,2)
+     circulationyVal6 = GetDataFromExcel(excelPath,testExcelSheetName,73,2)
+     circulationyVal7 = GetDataFromExcel(excelPath,testExcelSheetName,74,2)
+      ''## circulation band prices
+     circulationwordsVal0 = GetDataFromExcel(excelPath,testExcelSheetName,67,4)
+     circulationwordsVal1 = GetDataFromExcel(excelPath,testExcelSheetName,68,4)
+     circulationwordsVal2 = GetDataFromExcel(excelPath,testExcelSheetName,69,4)
+     circulationwordsVal3 = GetDataFromExcel(excelPath,testExcelSheetName,70,4)
+     circulationwordsVal4 = GetDataFromExcel(excelPath,testExcelSheetName,71,4)
+     circulationwordsVal5 = GetDataFromExcel(excelPath,testExcelSheetName,72,4)
+     circulationwordsVal6 = GetDataFromExcel(excelPath,testExcelSheetName,73,4)
+     circulationwordsVal7 = GetDataFromExcel(excelPath,testExcelSheetName,74,4)
+     circulationwordsreviewcheckboxVal0 = GetDataFromExcel(excelPath,testExcelSheetName,67,5)
+     circulationwordsreviewcheckboxVal1 = GetDataFromExcel(excelPath,testExcelSheetName,68,5)
+     circulationwordsreviewcheckboxVal2 = GetDataFromExcel(excelPath,testExcelSheetName,69,5)
+     circulationwordsreviewcheckboxVal3 = GetDataFromExcel(excelPath,testExcelSheetName,70,5)
+     circulationwordsreviewcheckboxVal4 = GetDataFromExcel(excelPath,testExcelSheetName,71,5)
+     circulationwordsreviewcheckboxVal5 = GetDataFromExcel(excelPath,testExcelSheetName,72,5)
+     circulationwordsreviewcheckboxVal6 = GetDataFromExcel(excelPath,testExcelSheetName,73,5)
+     circulationwordsreviewcheckboxVal7 = GetDataFromExcel(excelPath,testExcelSheetName,74,5)
+     circulationtableVal0 = GetDataFromExcel(excelPath,testExcelSheetName,67,6)
+     circulationtableVal1 = GetDataFromExcel(excelPath,testExcelSheetName,68,6)
+     circulationtableVal2 = GetDataFromExcel(excelPath,testExcelSheetName,69,6)
+     circulationtableVal3 = GetDataFromExcel(excelPath,testExcelSheetName,70,6)
+     circulationtableVal4 = GetDataFromExcel(excelPath,testExcelSheetName,71,6)
+     circulationtableVal5 = GetDataFromExcel(excelPath,testExcelSheetName,72,6)
+     circulationtableVal6 = GetDataFromExcel(excelPath,testExcelSheetName,73,6)
+     circulationtableVal7 = GetDataFromExcel(excelPath,testExcelSheetName,74,6)
+     circulationtablereviewcheckboxVal0 = GetDataFromExcel(excelPath,testExcelSheetName,67,7)
+     circulationtablereviewcheckboxVal1 = GetDataFromExcel(excelPath,testExcelSheetName,68,7)
+     circulationtablereviewcheckboxVal2 = GetDataFromExcel(excelPath,testExcelSheetName,69,7)
+     circulationtablereviewcheckboxVal3 = GetDataFromExcel(excelPath,testExcelSheetName,70,7)
+     circulationtablereviewcheckboxVal4 = GetDataFromExcel(excelPath,testExcelSheetName,71,7)
+     circulationtablereviewcheckboxVal5 = GetDataFromExcel(excelPath,testExcelSheetName,72,7)
+     circulationtablereviewcheckboxVal6 = GetDataFromExcel(excelPath,testExcelSheetName,73,7)
+     circulationtablereviewcheckboxVal7 = GetDataFromExcel(excelPath,testExcelSheetName,74,7)
+     circulationimageVal0 = GetDataFromExcel(excelPath,testExcelSheetName,67,8)
+     circulationimageVal1 = GetDataFromExcel(excelPath,testExcelSheetName,68,8)
+     circulationimageVal2 = GetDataFromExcel(excelPath,testExcelSheetName,69,8)
+     circulationimageVal3 = GetDataFromExcel(excelPath,testExcelSheetName,70,8)
+     circulationimageVal4 = GetDataFromExcel(excelPath,testExcelSheetName,71,8)
+     circulationimageVal5 = GetDataFromExcel(excelPath,testExcelSheetName,72,8)
+     circulationimageVal6 = GetDataFromExcel(excelPath,testExcelSheetName,73,8)
+     circulationimageVal7 = GetDataFromExcel(excelPath,testExcelSheetName,74,8)
+     circulationimagereviewcheckboxVal0 = GetDataFromExcel(excelPath,testExcelSheetName,67,9)
+     circulationimagereviewcheckboxVal1 = GetDataFromExcel(excelPath,testExcelSheetName,68,9)
+     circulationimagereviewcheckboxVal2 = GetDataFromExcel(excelPath,testExcelSheetName,69,9)
+     circulationimagereviewcheckboxVal3 = GetDataFromExcel(excelPath,testExcelSheetName,70,9)
+     circulationimagereviewcheckboxVal4 = GetDataFromExcel(excelPath,testExcelSheetName,71,9)
+     circulationimagereviewcheckboxVal5 = GetDataFromExcel(excelPath,testExcelSheetName,72,9)
+     circulationimagereviewcheckboxVal6 = GetDataFromExcel(excelPath,testExcelSheetName,73,9)
+     circulationimagereviewcheckboxVal7 = GetDataFromExcel(excelPath,testExcelSheetName,74,9)
+     ''## Coursepack parameters
+     photocopyVal = GetDataFromExcel(excelPath,testExcelSheetName,78,4)
+     scanningVal = GetDataFromExcel(excelPath,testExcelSheetName,79,4)
+     ''## Automation price Or Price Review?
+     autolevelValFPL = GetDataFromExcel(excelPath,testExcelSheetName,82,4) 
+     ''***************************************************************************************************
+     ''                                 End of Parameters
+     ''***************************************************************************************************
+    
+        
+     ''###################################################################################################
+     ''                                      SCRIPT  
+     ''###################################################################################################
+      ''## Launch the PLS clear in required browser
+      Call Launch_PLSclear(browserVal,urlVal)
+      Set browser = Sys.FindChild("ProcessName",browserVal,1)
+      Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),1)
+
+      ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+      ''## Login as Request Holder
+      '# Close Additional dialogue (Do you want to leave this site?) that comes up when previous request session is to be aborted
+      Call ActionOnAlertDialog(browserVal,"Yes")
+      '# Login
+      Call Login(browserVal,usernameVal,passwordVal,"pass","stop")
+      ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+      ''## Close any dialogues that appears on screen
+      Call ActionOnAlertDialog(browserVal,"Yes")
+       
+      ''### Set FPL programme for all the titles
+      folder1 = Log.CreateFolder("Edit FPL programme")
+      Log.PushLogFolder(folder1)
+      Call Set_Bulk_FPL_programme(browserVal,fplparam_Arr)
+      Log.PopLogFolder()
+
+       ''### Get one of the title falling under FPL programme and make a request on it
+       Call Get_Programme_Title(browserVal,issn1,searchVal)
+     
+      ''################################################################
+      '### Make a new request on excluded title
+      '###########
+      folder2 = Log.CreateFolder("A new request is made")
+      Log.PushLogFolder(folder2)
+       ''## SEARCH FOR A TITLE
+      Call SearchTitle(browserVal,searchtypeVal,issn1)
+      ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+      ''## SELECT A TITLE FROM THE SEARCH RESULTS
+      Call SelectSearchResult(browserVal,issn1,issn1)
+      ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+      ''## SELECT CONTENT
+      Log.Checkpoint("Navigated to 'Select Content' tab")
+      Call SelectContent(browserVal,textextractVal,poemVal,illustrationVal,tableVal,articleVal)
+      ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+      ''## DETAILS OF CONTENT
+      Log.Checkpoint("Navigated to 'Details of Content' tab")
+      Call Details_of_Content_MandatoryParameters(DetofContentParamsArr)
+        
+      '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+      '## SELECT PLANNED USE
+      If reuseprojectswitchVal = "No" then
+        Call SelectPlannedUsage(browserVal,usagetypeVal,usagesubtypeVal,reuseprojectswitchVal)
+        Set continuebtn = page.FindChild("className","buttonNext",25)
+        Call continuebtn.Click
+      Call Delay (1000)
+      End If
+     
+      '''''''''''''''
+      '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+      '## DETAILS OF USAGE
+     If reuseprojectswitchVal = "No" then
+       Log.Checkpoint("Navigated to 'Details of Usage' tab")
+       Call DetailsOfUsage_mandatoryparameters(browserVal, ArrDetofusageParams)
+     End If
+
+    '#''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    '## REVIEW REQUEST
+     Call Review_Request(browserVal)
+     
+     Log.PopLogFolder()
+      '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''' 
+      '## REQUEST MANAGER
+      '## Verifies if Request is made Succesfully and the request title is found in the top row of the Request Manager table
+      Set browser = Sys.FindChild("ProcessName",browserVal,1)
+      Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),10)
+      Set sentrequestslink = page.FindChildByXPath("//a[contains(.,'Sent Requests')]")
+      Call sentrequestslink.Click
+      Call Delay(1000)
+      Call browser.Refresh
+      Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),10)
+      ''## Checkpoint
+      Set rmtable = page.FindChildByXPath("//table")
+      statuscolumnId = rmtable.FindChildByXPath("//th[contains(.,'Status')]").ColumnIndex
+      If rmtable.Cell(1, statuscolumnId).TextNode(0).title = "Quotation sent" then
+        Log.Checkpoint("TEST PASSED: LicenceIssued_AutomatedFPLQuotation' Passed Test. 'Quotation sent' status is shown for Request Id: "& tID)
+        Log.Message("Status: "& rmtable.Cell(1, statuscolumnId).TextNode(0).title)
+      Else
+        Log.Error("TEST FAILED:'LicenceIssued_AutomatedFPLQuotation' Failed Test. 'Quotation sent' status is NOT shown for Request Id: "& tID)
+          Log.Warning("Status: "& rmtable.Cell(1, statuscolumnId).TextNode(0).title)
+      End If
+      Log.Picture(rmtable)
+      ''###############################################################################
+      ''## Reset the programme to default settings
+      ''###############################################################################
+      
+      folder3 = Log.CreateFolder("Below actions are to Reset the Programme to default settings")
+      Log.PushLogFolder(folder3)
+      ''## Reset the programme to default programme settings.
+      autolevelValFPL = GetDataFromExcel(excelPath,"FPL Default",82,4)
+      Call Set_Bulk_FPL_programme(browserVal,fplparam_Arr)
+      Log.PopLogFolder()
+      ''# Close Excel instance
+      objExcel.Quit
+      Set objExcel = Nothing
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+'   
+'   
+'   
+'   
+'   
+'   
+'   ''##############
+'   excelPath = "C:\Users\C4T\Desktop\PLSclearDDT.xlsx"
+'   Set objExcel = Sys.OleObject("Excel.Application")
+'   objExcel.DisplayAlerts = 0
+'   objExcel.Visible = True
+'   objExcel.Workbooks.Open excelPath
+'   ''#########
+'   browserVal = "chrome"
+'   urlVal = "http://uat.plsclear.com"
+'   ''## Rights Holder Login credentials
+'   usernameVal2 = "mwagner"
+'   passwordVal2 = "pinter629"
+'   ''### FPL parameters
+'    '# FPL Bulk settings
+'      ''##  format
+'     hardbackcheckVal = GetDataFromExcel(excelPath,"FPL_tc6",5,4)
+'     paperbackcheckVal = GetDataFromExcel(excelPath,"FPL_tc6",6,4)
+'     magazinecheckVal = GetDataFromExcel(excelPath,"FPL_tc6",7,4)
+'     advertcheckVal = GetDataFromExcel(excelPath,"FPL_tc6",8,4)
+'     ebookcheckVal = GetDataFromExcel(excelPath,"FPL_tc6",10,4)
+'     onlineeditioncheckVal = GetDataFromExcel(excelPath,"FPL_tc6",11,4)
+'     downloadfilecheckVal = GetDataFromExcel(excelPath,"FPL_tc6",12,4)
+'     webpagecheckVal = GetDataFromExcel(excelPath,"FPL_tc6",13,4)
+'     livestreamcheckVal = GetDataFromExcel(excelPath,"FPL_tc6",14,4)
+'     appcheckVal = GetDataFromExcel(excelPath,"FPL_tc6",15,4)
+'     audiobookcheckVal = GetDataFromExcel(excelPath,"FPL_tc6",17,4)
+'     podcastcheckVal = GetDataFromExcel(excelPath,"FPL_tc6",18,4)
+'     radiocheckVal = GetDataFromExcel(excelPath,"FPL_tc6",19,4)
+'     tvcheckVal = GetDataFromExcel(excelPath,"FPL_tc6",21,4)
+'     presentationscheckVal = GetDataFromExcel(excelPath,"FPL_tc6",22,4)
+'     printcoursepackcheckVal = GetDataFromExcel(excelPath,"FPL_tc6",24,4)
+'     electroniccoursepackcheckVal = GetDataFromExcel(excelPath,"FPL_tc6",25,4)
+'     thesischeckVal = GetDataFromExcel(excelPath,"FPL_tc6",26,4)
+'     ''## 
+'     circulationrestrictionsVal = GetDataFromExcel(excelPath,"FPL_tc6",28,4)
+'     maxtotalcirculationVal = GetDataFromExcel(excelPath,"FPL_tc6",29,4)
+'     maxprintcirculationVal = GetDataFromExcel(excelPath,"FPL_tc6",30,4)
+'     maxebookcirculationVal = GetDataFromExcel(excelPath,"FPL_tc6",31,4)
+'     maxwebcirculationVal = GetDataFromExcel(excelPath,"FPL_tc6",32,4)
+'     fplterritoryVal = GetDataFromExcel(excelPath,"FPL_tc6",33,4)
+'     languageVal = GetDataFromExcel(excelPath,"FPL_tc6",34,4)
+'     lifetimelicenceVal = GetDataFromExcel(excelPath,"FPL_tc6",35,4)
+'     yearsoflicenceVal = GetDataFromExcel(excelPath,"FPL_tc6",36,4)
+'     yearsoflicenceVal = GetDataFromExcel(excelPath,"FPL_tc6",37,4)
+'     ''## PRICE SETTINGS
+'     ''# Sector
+'     pricebysectorcheckboxVal = GetDataFromExcel(excelPath,"FPL_tc6",42,4)
+'     useonepriceforallsectorsVal = GetDataFromExcel(excelPath,"FPL_tc6",43,4)
+'     setindividualpricespersectorVal = GetDataFromExcel(excelPath,"FPL_tc6",44,4) 
+'     ' All
+'     sectorwordsVal = GetDataFromExcel(excelPath,"FPL_tc6",46,4) 
+'     sectorwordsreviewcheckboxVal = GetDataFromExcel(excelPath,"FPL_tc6",46,5) 
+'     sectortableVal = GetDataFromExcel(excelPath,"FPL_tc6",46,6) 
+'     sectortablereviewcheckboxVal = GetDataFromExcel(excelPath,"FPL_tc6",46,7) 
+'     sectorimageVal = GetDataFromExcel(excelPath,"FPL_tc6",46,8) 
+'     sectorimagereviewcheckboxVal = GetDataFromExcel(excelPath,"FPL_tc6",46,9) 
+'     'per sector
+'     sectorVal0 = GetDataFromExcel(excelPath,"FPL_tc6",47,2) 
+'     sectorVal1 = GetDataFromExcel(excelPath,"FPL_tc6",48,2) 
+'     sectorVal2 = GetDataFromExcel(excelPath,"FPL_tc6",49,2) 
+'     sectorVal3 = GetDataFromExcel(excelPath,"FPL_tc6",50,2) 
+'     sectorVal4 = GetDataFromExcel(excelPath,"FPL_tc6",51,2) 
+'     sectorwordsVal0 = GetDataFromExcel(excelPath,"FPL_tc6",47,4) 
+'     sectorwordsVal1 = GetDataFromExcel(excelPath,"FPL_tc6",48,4) 
+'     sectorwordsVal2 = GetDataFromExcel(excelPath,"FPL_tc6",49,4) 
+'     sectorwordsVal3 = GetDataFromExcel(excelPath,"FPL_tc6",50,4) 
+'     sectorwordsVal4 = GetDataFromExcel(excelPath,"FPL_tc6",51,4) 
+'     sectorwordsreviewcheckboxVal0 = GetDataFromExcel(excelPath,"FPL_tc6",47,5) 
+'     sectorwordsreviewcheckboxVal1 = GetDataFromExcel(excelPath,"FPL_tc6",48,5) 
+'     sectorwordsreviewcheckboxVal2 = GetDataFromExcel(excelPath,"FPL_tc6",49,5) 
+'     sectorwordsreviewcheckboxVal3 = GetDataFromExcel(excelPath,"FPL_tc6",50,5) 
+'     sectorwordsreviewcheckboxVal4 = GetDataFromExcel(excelPath,"FPL_tc6",51,5) 
+'     sectortableVal0 = GetDataFromExcel(excelPath,"FPL_tc6",47,6) 
+'     sectortableVal1 = GetDataFromExcel(excelPath,"FPL_tc6",48,6) 
+'     sectortableVal2 = GetDataFromExcel(excelPath,"FPL_tc6",49,6) 
+'     sectortableVal3 = GetDataFromExcel(excelPath,"FPL_tc6",50,6) 
+'     sectortableVal4 = GetDataFromExcel(excelPath,"FPL_tc6",51,6) 
+'     sectortablereviewcheckboxVal0 = GetDataFromExcel(excelPath,"FPL_tc6",47,7) 
+'     sectortablereviewcheckboxVal1 = GetDataFromExcel(excelPath,"FPL_tc6",48,7) 
+'     sectortablereviewcheckboxVal2 = GetDataFromExcel(excelPath,"FPL_tc6",49,7) 
+'     sectortablereviewcheckboxVal3 = GetDataFromExcel(excelPath,"FPL_tc6",50,7) 
+'     sectortablereviewcheckboxVal4 = GetDataFromExcel(excelPath,"FPL_tc6",51,7) 
+'     sectorimageVal0 = GetDataFromExcel(excelPath,"FPL_tc6",47,8) 
+'     sectorimageVal1 = GetDataFromExcel(excelPath,"FPL_tc6",48,8) 
+'     sectorimageVal2 = GetDataFromExcel(excelPath,"FPL_tc6",49,8) 
+'     sectorimageVal3 = GetDataFromExcel(excelPath,"FPL_tc6",50,8) 
+'     sectortableVal4 = GetDataFromExcel(excelPath,"FPL_tc6",51,8)
+'     sectorimagereviewcheckboxVal0 = GetDataFromExcel(excelPath,"FPL_tc6",47,9) 
+'     sectorimagereviewcheckboxVal1 = GetDataFromExcel(excelPath,"FPL_tc6",48,9) 
+'     sectorimagereviewcheckboxVal2 = GetDataFromExcel(excelPath,"FPL_tc6",49,9) 
+'     sectorimagereviewcheckboxVal3 = GetDataFromExcel(excelPath,"FPL_tc6",50,9) 
+'     sectorimagereviewcheckboxVal4 = GetDataFromExcel(excelPath,"FPL_tc6",51,10) 
+'     ''# Purpose
+'     pricebypurposecheckboxVal = GetDataFromExcel(excelPath,"FPL_tc6",53,4) 
+'     useonepriceforallpurposesVal = GetDataFromExcel(excelPath,"FPL_tc6",54,4)
+'     setindividualpricesperpurposeVal = GetDataFromExcel(excelPath,"FPL_tc6",55,4) 
+'     '#All
+'     purposewordsVal = GetDataFromExcel(excelPath,"FPL_tc6",57,4) 
+'     purposewordsreviewcheckboxVal = GetDataFromExcel(excelPath,"FPL_tc6",57,5) 
+'     purposetableVal = GetDataFromExcel(excelPath,"FPL_tc6",57,6) 
+'     purposetablereviewcheckboxVal = GetDataFromExcel(excelPath,"FPL_tc6",57,7) 
+'     purposeimageVal = GetDataFromExcel(excelPath,"FPL_tc6",57,8) 
+'     purposeimagereviewcheckboxVal = GetDataFromExcel(excelPath,"FPL_tc6",57,9) 
+'    ''#Per
+'     purposeVal0 = GetDataFromExcel(excelPath,"FPL_tc6",58,2) 
+'     purposeVal1 = GetDataFromExcel(excelPath,"FPL_tc6",59,2) 
+'     purposeVal2 = GetDataFromExcel(excelPath,"FPL_tc6",60,2) 
+'     purposewordsVal0 = GetDataFromExcel(excelPath,"FPL_tc6",58,4) 
+'     purposewordsVal1 = GetDataFromExcel(excelPath,"FPL_tc6",59,4) 
+'     purposewordsVal2 = GetDataFromExcel(excelPath,"FPL_tc6",60,4)
+'     purposewordsreviewcheckboxVal0 = GetDataFromExcel(excelPath,"FPL_tc6",58,5) 
+'     purposewordsreviewcheckboxVal1 = GetDataFromExcel(excelPath,"FPL_tc6",59,5) 
+'     purposewordsreviewcheckboxVal2 = GetDataFromExcel(excelPath,"FPL_tc6",60,5) 
+'     purposetableVal0 = GetDataFromExcel(excelPath,"FPL_tc6",58,6) 
+'     purposetableVal1 = GetDataFromExcel(excelPath,"FPL_tc6",59,6) 
+'     purposetableVal2 = GetDataFromExcel(excelPath,"FPL_tc6",60,6) 
+'     purposetablereviewcheckboxVal0 = GetDataFromExcel(excelPath,"FPL_tc6",58,7) 
+'     purposetablereviewcheckboxVal1 = GetDataFromExcel(excelPath,"FPL_tc6",59,7) 
+'     purposetablereviewcheckboxVal2 = GetDataFromExcel(excelPath,"FPL_tc6",60,7) 
+'     purposeimageVal0 = GetDataFromExcel(excelPath,"FPL_tc6",58,8) 
+'     purposeimageVal1 = GetDataFromExcel(excelPath,"FPL_tc6",59,8) 
+'     purposeimageVal2 = GetDataFromExcel(excelPath,"FPL_tc6",60,8) 
+'     purposeimagereviewcheckboxVal0 = GetDataFromExcel(excelPath,"FPL_tc6",58,9) 
+'     purposeimagereviewcheckboxVal1 = GetDataFromExcel(excelPath,"FPL_tc6",59,9) 
+'     purposeimagereviewcheckboxVal2 = GetDataFromExcel(excelPath,"FPL_tc6",60,9) 
+'    ''# CIRCULATION
+'     pricebycirculationcheckboxVal = GetDataFromExcel(excelPath,"FPL_tc6",62,4) 
+'     useonepriceforallcirculationVal = GetDataFromExcel(excelPath,"FPL_tc6",63,4)
+'     setindividualpricespercirculationVal = GetDataFromExcel(excelPath,"FPL_tc6",64,4) 
+'    '# All
+'     circulationwordsVal = GetDataFromExcel(excelPath,"FPL_tc6",66,4) 
+'     circulationwordsreviewcheckboxVal = GetDataFromExcel(excelPath,"FPL_tc6",66,5) 
+'     circulationtableVal = GetDataFromExcel(excelPath,"FPL_tc6",66,6) 
+'     circulationtablereviewcheckboxVal = GetDataFromExcel(excelPath,"FPL_tc6",66,7)  
+'     circulationimageVal = GetDataFromExcel(excelPath,"FPL_tc6",66,8)
+'     circulationimagereviewcheckboxVal = GetDataFromExcel(excelPath,"FPL_tc6",66,9) 
+'    ''# per
+'     circulationxVal0 = GetDataFromExcel(excelPath,"FPL_tc6",67,1)
+'     circulationxVal1 = GetDataFromExcel(excelPath,"FPL_tc6",68,1)
+'     circulationxVal2 = GetDataFromExcel(excelPath,"FPL_tc6",69,1)
+'     circulationxVal3 = GetDataFromExcel(excelPath,"FPL_tc6",70,1)
+'     circulationxVal4 = GetDataFromExcel(excelPath,"FPL_tc6",71,1)
+'     circulationxVal5 = GetDataFromExcel(excelPath,"FPL_tc6",72,1)
+'     circulationxVal6 = GetDataFromExcel(excelPath,"FPL_tc6",73,1)
+'     circulationxVal7 = GetDataFromExcel(excelPath,"FPL_tc6",74,1)
+'     circulationyVal0 = GetDataFromExcel(excelPath,"FPL_tc6",67,2)
+'     circulationyVal1 = GetDataFromExcel(excelPath,"FPL_tc6",68,2)
+'     circulationyVal2 = GetDataFromExcel(excelPath,"FPL_tc6",69,2)
+'     circulationyVal3 = GetDataFromExcel(excelPath,"FPL_tc6",70,2)
+'     circulationyVal4 = GetDataFromExcel(excelPath,"FPL_tc6",71,2)
+'     circulationyVal5 = GetDataFromExcel(excelPath,"FPL_tc6",72,2)
+'     circulationyVal6 = GetDataFromExcel(excelPath,"FPL_tc6",73,2)
+'     circulationyVal7 = GetDataFromExcel(excelPath,"FPL_tc6",74,2)
+'      
+'      circulationwordsVal0 = GetDataFromExcel(excelPath,"FPL_tc6",67,4)
+'      circulationwordsVal1 = GetDataFromExcel(excelPath,"FPL_tc6",68,4)
+'      circulationwordsVal2 = GetDataFromExcel(excelPath,"FPL_tc6",69,4)
+'      circulationwordsVal3 = GetDataFromExcel(excelPath,"FPL_tc6",70,4)
+'      circulationwordsVal4 = GetDataFromExcel(excelPath,"FPL_tc6",71,4)
+'      circulationwordsVal5 = GetDataFromExcel(excelPath,"FPL_tc6",72,4)
+'      circulationwordsVal6 = GetDataFromExcel(excelPath,"FPL_tc6",73,4)
+'      circulationwordsVal7 = GetDataFromExcel(excelPath,"FPL_tc6",74,4)
+'      circulationwordsreviewcheckboxVal0 = GetDataFromExcel(excelPath,"FPL_tc6",67,5)
+'      circulationwordsreviewcheckboxVal1 = GetDataFromExcel(excelPath,"FPL_tc6",68,5)
+'      circulationwordsreviewcheckboxVal2 = GetDataFromExcel(excelPath,"FPL_tc6",69,5)
+'      circulationwordsreviewcheckboxVal3 = GetDataFromExcel(excelPath,"FPL_tc6",70,5)
+'      circulationwordsreviewcheckboxVal4 = GetDataFromExcel(excelPath,"FPL_tc6",71,5)
+'      circulationwordsreviewcheckboxVal5 = GetDataFromExcel(excelPath,"FPL_tc6",72,5)
+'      circulationwordsreviewcheckboxVal6 = GetDataFromExcel(excelPath,"FPL_tc6",73,5)
+'      circulationwordsreviewcheckboxVal7 = GetDataFromExcel(excelPath,"FPL_tc6",74,5)
+'      circulationtableVal0 = GetDataFromExcel(excelPath,"FPL_tc6",67,6)
+'      circulationtableVal1 = GetDataFromExcel(excelPath,"FPL_tc6",68,6)
+'      circulationtableVal2 = GetDataFromExcel(excelPath,"FPL_tc6",69,6)
+'      circulationtableVal3 = GetDataFromExcel(excelPath,"FPL_tc6",70,6)
+'      circulationtableVal4 = GetDataFromExcel(excelPath,"FPL_tc6",71,6)
+'      circulationtableVal5 = GetDataFromExcel(excelPath,"FPL_tc6",72,6)
+'      circulationtableVal6 = GetDataFromExcel(excelPath,"FPL_tc6",73,6)
+'      circulationtableVal7 = GetDataFromExcel(excelPath,"FPL_tc6",74,6)
+'      circulationtablereviewcheckboxVal0 = GetDataFromExcel(excelPath,"FPL_tc6",67,7)
+'      circulationtablereviewcheckboxVal1 = GetDataFromExcel(excelPath,"FPL_tc6",68,7)
+'      circulationtablereviewcheckboxVal2 = GetDataFromExcel(excelPath,"FPL_tc6",69,7)
+'      circulationtablereviewcheckboxVal3 = GetDataFromExcel(excelPath,"FPL_tc6",70,7)
+'      circulationtablereviewcheckboxVal4 = GetDataFromExcel(excelPath,"FPL_tc6",71,7)
+'      circulationtablereviewcheckboxVal5 = GetDataFromExcel(excelPath,"FPL_tc6",72,7)
+'      circulationtablereviewcheckboxVal6 = GetDataFromExcel(excelPath,"FPL_tc6",73,7)
+'      circulationtablereviewcheckboxVal7 = GetDataFromExcel(excelPath,"FPL_tc6",74,7)
+'      circulationimageVal0 = GetDataFromExcel(excelPath,"FPL_tc6",67,8)
+'      circulationimageVal1 = GetDataFromExcel(excelPath,"FPL_tc6",68,8)
+'      circulationimageVal2 = GetDataFromExcel(excelPath,"FPL_tc6",69,8)
+'      circulationimageVal3 = GetDataFromExcel(excelPath,"FPL_tc6",70,8)
+'      circulationimageVal4 = GetDataFromExcel(excelPath,"FPL_tc6",71,8)
+'      circulationimageVal5 = GetDataFromExcel(excelPath,"FPL_tc6",72,8)
+'      circulationimageVal6 = GetDataFromExcel(excelPath,"FPL_tc6",73,8)
+'      circulationimageVal7 = GetDataFromExcel(excelPath,"FPL_tc6",74,8)
+'      circulationimagereviewcheckboxVal0 = GetDataFromExcel(excelPath,"FPL_tc6",67,9)
+'      circulationimagereviewcheckboxVal1 = GetDataFromExcel(excelPath,"FPL_tc6",68,9)
+'      circulationimagereviewcheckboxVal2 = GetDataFromExcel(excelPath,"FPL_tc6",69,9)
+'      circulationimagereviewcheckboxVal3 = GetDataFromExcel(excelPath,"FPL_tc6",70,9)
+'      circulationimagereviewcheckboxVal4 = GetDataFromExcel(excelPath,"FPL_tc6",71,9)
+'      circulationimagereviewcheckboxVal5 = GetDataFromExcel(excelPath,"FPL_tc6",72,9)
+'      circulationimagereviewcheckboxVal6 = GetDataFromExcel(excelPath,"FPL_tc6",73,9)
+'      circulationimagereviewcheckboxVal7 = GetDataFromExcel(excelPath,"FPL_tc6",74,9)
+'      ''##
+'      photocopyVal = GetDataFromExcel(excelPath,"FPL_tc6",78,4)
+'      scanningVal = GetDataFromExcel(excelPath,"FPL_tc6",79,4)
+'      ''##
+'      autolevelValFPL = GetDataFromExcel(excelPath,"FPL_tc6",82,4)   ''Issue of FPL Quotation
+'      ''#############################################################################
+'
+'    ''## Request Parameters
+'    usernameVal = GetDataFromExcel(excelPath,"Login",3,3)
+'    passwordVal = GetDataFromExcel(excelPath,"Login",3,4)
+'    ''# Search
+'    searchtypeVal = GetDataFromExcel(excelPath,"Search",3,1)
+'    searchVal = GetDataFromExcel(excelPath,"Search",3,2)
+'    resultVal = GetDataFromExcel(excelPath,"Search",3,3)
+'    ''# Select Content
+'    textextractVal = GetDataFromExcel (excelPath,"Select Content",3,1)
+'    poemVal = GetDataFromExcel(excelPath,"Select Content",3,2)
+'    illustrationVal = GetDataFromExcel(excelPath,"Select Content",3,3)
+'    tableVal = GetDataFromExcel(excelPath,"Select Content",3,4)
+'    articleVal = GetDataFromExcel(excelPath,"Select Content",3,5)
+'    ''# Details of Content
+'    noofwordsVal = GetDataFromExcel(excelPath,"Details of Content",3,1)
+'    pagenoVal = GetDataFromExcel(excelPath,"Details of Content",3,2)
+'    nameofthepoemVal = GetDataFromExcel(excelPath,"Details of Content",3,3)
+'    reproductioncolourVal = GetDataFromExcel(excelPath,"Details of Content",3,4)
+'    reproductionsizeVal = GetDataFromExcel(excelPath,"Details of Content",3,5)
+'    figurenumber_titleVal  = GetDataFromExcel(excelPath,"Details of Content",3,6)
+'    pagenumberVal = GetDataFromExcel(excelPath,"Details of Content",3,7)
+'    pagerangeVal = GetDataFromExcel(excelPath,"Details of Content",3,8)
+'    issuedateVal = GetDataFromExcel(excelPath,"Details of Content",3,9)
+'    yearofpublicationVal = GetDataFromExcel(excelPath,"Details of Content",3,10)
+'    reuseprojectswitchVal = GetDataFromExcel(excelPath,"Details of Content",3,11)
+'    areyouauthorVal = GetDataFromExcel(excelPath,"Details of Content",3,14)
+'    '##  Select Planned Use 
+'    selectplanneduseexcelsheet = "Select Planned Use" 
+'    '## 'Details of Usage' (Mandatory parameters ONLY)
+'    purposeVal = GetDataFromExcel(excelPath,"Details of Content",3,12)
+'    sectorVal = GetDataFromExcel(excelPath,"Details of Content",3,13)
+'    territoriesVal = GetDataFromExcel(excelPath,"Select Planned Use",3,6)
+'    printrunVal = GetDataFromExcel(excelPath,"Select Planned Use",3,7)
+'    retailpriceVal = GetDataFromExcel(excelPath,"Select Planned Use",3,8)
+'    estimatedsalesVal = GetDataFromExcel(excelPath,"Select Planned Use",3,9)
+'    estimatedCDsalesVal = GetDataFromExcel(excelPath,"Select Planned Use",3,10)
+'    estimateddownloadsalesVal = GetDataFromExcel(excelPath,"Select Planned Use",3,11)
+'    audiencerestrictedinanywayVal = GetDataFromExcel(excelPath,"Select Planned Use",3,12)
+'    expectednumberofvisitorsVal = GetDataFromExcel(excelPath,"Select Planned Use",3,13)
+'    circulationVal = GetDataFromExcel(excelPath,"Select Planned Use",3,14)
+'    openaccessVal = GetDataFromExcel(excelPath,"Select Planned Use",3,15)
+'    estimatednumberofticketsalesVal = GetDataFromExcel(excelPath,"Select Planned Use",3,16)
+'    numberofslidesVal = GetDataFromExcel(excelPath,"Select Planned Use",3,17)
+'    totalruntimeVal = GetDataFromExcel(excelPath,"Select Planned Use",3,18)
+'    numberofusersVal = GetDataFromExcel(excelPath,"Select Planned Use",3,19)
+'    formatVal = GetDataFromExcel(excelPath,"Select Planned Use",3,20)
+'    methodofdistributionVal = GetDataFromExcel(excelPath,"Select Planned Use",3,21)
+'    periodoftimeVal = GetDataFromExcel(excelPath,"Select Planned Use",3,22)
+'    perioddownloadisactiveVal = GetDataFromExcel(excelPath,"Select Planned Use",3,23)
+'    numberofstudentsusingVal = GetDataFromExcel(excelPath,"Select Planned Use",3,24)
+'    numberofpagesVal = GetDataFromExcel(excelPath,"Select Planned Use",3,25)
+'    
+'   '#####################################################################################
+'  
+'    ''####################  SCRIPT  ################################################################
+'    ''## Launch the PLS clear in required browser
+'    Call Launch_PLSclear(browserVal,urlVal)
+'    Set browser = Sys.FindChild("ProcessName",browserVal,1)
+'    Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),1)
+'    ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'    ''## Login as requestor
+'    '# Close Additional dialogue (Do you want to leave this site?) that comes up when previous request session is to be aborted
+'    Call ActionOnAlertDialog(browserVal,"Yes")
+'    '# Login
+'    Call Login(browserVal,usernameVal2,passwordVal2,"pass","stop")
+'    ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'    ''## Close any dialogues that appears on screen
+'    Call ActionOnAlertDialog(browserVal,"Yes")
+'   
+'    ''# Set FoC Bulk Parameters
+'    Call Set_Bulk_FPL_programme(browserVal,fplparam_Arr)
+'     ''## SEARCH FOR A TITLE
+'    Call SearchTitle(browserVal,searchtypeVal,searchVal)
+'    ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'    ''## SELECT A TITLE FROM THE SEARCH RESULTS
+'    Call SelectSearchResult(browserVal,resultVal,isnVal)
+'    ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'    ''## SELECT CONTENT
+'    Log.Checkpoint("Navigated to 'Select Content' tab")
+'    Call SelectContent(browserVal,textextractVal,poemVal,illustrationVal,tableVal,articleVal)
+'    ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'    ''## DETAILS OF CONTENT
+'    Log.Checkpoint("Navigated to 'Details of Content' tab")
+'    Call Details_of_Content_MandatoryParameters(DetofContentParamsArr)
+'      
+'    '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'    '## SELECT PLANNED USE
+'    Call SelectPlannedUsage_getexcelvalueLogic(browserVal,usagetypeVal,usagesubtypeVal,reuseprojectswitchVal,savedprojectVal,_
+'      excelPath,selectplanneduseexcelsheet)
+'    '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'      '## DETAILS OF USAGE
+'    If reuseprojectswitchVal = "No" then
+'      Log.Checkpoint("Navigated to 'Details of Usage' tab")
+'      Call DetailsOfUsage_mandatoryparameters(browserVal, ArrDetofusageParams)
+'         
+'           
+'         
+'    End If
+'
+'    '#''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+'    '## REVIEW REQUEST
+'    Call Review_Request(browserVal)
+'     
+'      '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''' 
+'    '## REQUEST MANAGER
+'    '## Verifies if Request is made Succesfully and the request title is found in the top row of the Request Manager table
+'    Set browser = Sys.FindChild("ProcessName",browserVal,1)
+'    Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),10)
+'    Set sentrequestslink = page.FindChildByXPath("//a[contains(.,'Sent Requests')]")
+'    Call sentrequestslink.Click
+'    Call Delay(1000)
+'    Call browser.Refresh
+'    Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),10)
+'    Set rmtable = page.FindChildByXPath("//table[@class='listView tableRequestor']")
+'    Set isncell = rmtable.FindChild(Array("ColumnIndex","RowIndex","Visible"),Array(2,1,True),2)
+'    Log.Message("isnVal = "& isnVal)
+'    If isncell.contentText = isnVal then
+'      Log.Checkpoint("Request Test Passed: Request was made successfully for '"& resultVal &"'. Requested ISN found in the 'Request Manager' table top row")
+'    Else
+'      Log.Error("Request Test Failed: Request could NOT be made for '"& resultVal &"'. Requested ISN NOT found in the 'Request Manager' table top row.")
+'    End If
+'     ''## Status check point
+'    If rmtable.Cell(1, 6).TextNode(0).title = "Quotation sent" then
+'      Log.Checkpoint("'LicenceIssued_AutomatedFPLQuotation' Passed Test. 'Quotation sent' status is shown for Request Id: "& tID)
+'      Log.Message("Status: "& rmtable.Cell(1, 6).TextNode(0).title)
+'    Else
+'      Log.Warning("'LicenceIssued_AutomatedFPLQuotation' Failed Test. 'Quotation sent' status is NOT shown for Request Id: "& tID)
+'      Log.Error("Status test Failed: The request status was not shown as 'Licensed'")
+'    End If
+'     Log.Picture(rmtable)
+   
+  
+End Sub
+

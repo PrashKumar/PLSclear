@@ -1,0 +1,78 @@
+﻿'USEUNIT LIBRARY
+'USEUNIT LIBRARY_REQUESTMANAGER
+'USEUNIT LIBRARY_TITLEMANAGER
+
+''## Description: Logins as a Request holder and declines a request which is on Quotation sent status. Verifies the status after declining.
+
+
+Sub STAT_tc4_DeclinedStatus_RHdeclinesRequest_followingQuotation
+   Log.Message("Test - STAT_tc4_DeclinedStatus_RHdeclinesRequest_followingQuotation")
+   ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+   excelPath = "C:\Users\C4T\Desktop\PLSclearDDT.xlsx"
+   excelRowVal = 48
+   Set objExcel = Sys.OleObject("Excel.Application")
+   objExcel.DisplayAlerts = 0
+   objExcel.Visible = True
+   objExcel.Workbooks.Open excelPath
+   
+   browserVal = GetDataFromExcel(excelPath,"Login",excelRowVal,1)
+   urlVal = GetDataFromExcel(excelPath,"Login",excelRowVal,2)
+   ''## Rights Holder Login credentials
+   usernameVal = GetDataFromExcel(excelPath,"Login",excelRowVal,3)
+   passwordVal = GetDataFromExcel(excelPath,"Login",excelRowVal,4)
+   
+   ''####################  SCRIPT  ################################################################
+    ''## Launch the PLS clear in required browser
+    Call Launch_PLSclear(browserVal,urlVal)
+    Set browser = Sys.FindChild("ProcessName",browserVal,1)
+    Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),1)
+    ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    ''## Login as requestor
+    '# Close Additional dialogue (Do you want to leave this site?) that comes up when previous request session is to be aborted
+    Call ActionOnAlertDialog(browserVal,"Yes")
+    '# Login
+    Call Login(browserVal,usernameVal,passwordVal,"pass","stop")
+    ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    ''## Close any dialogues that appears on screen
+    Call ActionOnAlertDialog(browserVal,"Yes")
+    ''## Navigate to Request Manager
+    Call NavigateToPage(browserVal,"Request Manager")
+   ''## Search for a Request which is on 'Quotation sent' status
+    Call SelectRequestByValue(browserVal,"Quotation sent",tID) 
+    Call Delay(3000)
+    Set assisttaskstatus = page.FindChild("className","assistTaskStaus",25)
+    Call assisttaskstatus.scrollIntoView(1)
+    Call assisttaskstatus.ClickItem("Decline")
+    Call Delay(1000)
+    Call page.FindChild(Array("ObjectIdentifier","Width"),Array("ddReason","regexp:[^0]+"),25).Click
+    Call page.FindChild(Array("ObjectIdentifier","Width"),Array("ddReason","regexp:[^0]+"),25).ClickItem("We cannot grant permission for this particular type of request")
+    Call Delay(1000)
+    Call page.FindChild(Array("ObjectLabel","ObjectType"),Array("Other","RadioButton"),30).ClickButton
+    Call delay(1000)
+    Call page.FindChild("ObjectIdentifier","txtOtherReason",25).Keys("testing purpose")
+    Call page.FindChild(Array("ObjectLabel","ObjectType","Width"),Array("Finish","SubmitButton","regexp:[^0]+"),30).Click
+    Call delay(10000)
+    Set browser = Sys.FindChild("ProcessName",browserVal,1)
+    Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),1)
+    Set rmtable = page.FindChildByXPath("//table")
+    vRowIndex = rmtable.FindChild(Array("ColumnIndex","contentText"),Array("0",tID),3).RowIndex
+    Log.Message("ID "& tID &" has been moved to Row " & vRowIndex &" after request was Declined")
+    statuscolumnId = rmtable.FindChildByXPath("//th[contains(.,'Status')]").ColumnIndex
+    Set vcell = rmtable.FindChild(Array("RowIndex","ColumnIndex"),Array(vRowIndex,statuscolumnId),3)
+    If InStr(vcell.outerHTML,"Declined") <> 0 then
+      Log.Checkpoint("'DeclinedStatus_RHdeclinesRequest_followingQuotation' Passed Test. Declined status is shown for Request Id: "& tID)
+    Else
+      Log.Warning("DeclinedStatus_RHdeclinesRequest_followingQuotation Failed Test. Declined status is NOT shown for Request Id: "& tID)
+      Log.Message(vcell.outerHTML)
+    End If
+     Log.Picture(rmtable)
+     '# Reset button is clicked after the test to reset the search results performed earlier to search
+    Set resetsearchbtn = page.FindChild("ObjectIdentifier","ButtonResetSearch",30)
+    Call resetsearchbtn.Click
+    ''# Close Excel instance
+    objExcel.Quit
+    Set objExcel = Nothing
+    
+End Sub
+
+

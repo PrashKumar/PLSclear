@@ -1,0 +1,152 @@
+﻿'USEUNIT LIBRARY
+'USEUNIT LIBRARY_REQUESTMANAGER
+'USEUNIT LIBRARY_TITLEMANAGER
+
+Sub  Request_wizard_Test
+  Log.Message "Request_wizard_Test"
+   ''# Login
+   excelPath = "C:\Users\C4T\Desktop\Batch-PLSclearDDT.xlsx"
+   Set objExcel = Sys.OleObject("Excel.Application")
+   objExcel.DisplayAlerts = 0
+   objExcel.Visible = True
+   objExcel.Workbooks.Open excelPath
+   ''#########
+   browserVal = GetDataFromExcel(excelPath,"Login",3,1)
+   urlVal = GetDataFromExcel(excelPath,"Login",3,2)
+   usernameVal = GetDataFromExcel(excelPath,"Login",3,3)
+   passwordVal = GetDataFromExcel(excelPath,"Login",3,4)
+   ''# Search
+   searchtypeVal = GetDataFromExcel(excelPath,"Search",3,1)
+   searchVal = GetDataFromExcel(excelPath,"Search",3,2)
+   resultVal = GetDataFromExcel(excelPath,"Search",3,3)
+   ''# Select Content
+   textextractVal = GetDataFromExcel (excelPath,"Select Content",3,1)
+   poemVal = GetDataFromExcel(excelPath,"Select Content",3,2)
+   illustrationVal = GetDataFromExcel(excelPath,"Select Content",3,3)
+   tableVal = GetDataFromExcel(excelPath,"Select Content",3,4)
+   articleVal = GetDataFromExcel(excelPath,"Select Content",3,5)
+   ''# Details of Content
+   noofwordsVal = GetDataFromExcel(excelPath,"Details of Content",3,1)
+   pagenoVal = GetDataFromExcel(excelPath,"Details of Content",3,2)
+   nameofthepoemVal = GetDataFromExcel(excelPath,"Details of Content",3,3)
+   reproductioncolourVal = GetDataFromExcel(excelPath,"Details of Content",3,4)
+   reproductionsizeVal = GetDataFromExcel(excelPath,"Details of Content",3,5)
+   figurenumber_titleVal  = GetDataFromExcel(excelPath,"Details of Content",3,6)
+   pagenumberVal = GetDataFromExcel(excelPath,"Details of Content",3,7)
+   pagerangeVal = GetDataFromExcel(excelPath,"Details of Content",3,8)
+   issuedateVal = GetDataFromExcel(excelPath,"Details of Content",3,9)
+   yearofpublicationVal = GetDataFromExcel(excelPath,"Details of Content",3,10)
+   reuseprojectswitchVal = GetDataFromExcel(excelPath,"Details of Content",3,11)
+  '##  Select Planned Use 
+   selectplanneduseexcelsheet = "Select Planned Use" 
+   
+   
+   
+  '## 'Details of Usage' (Mandatory parameters ONLY)
+   purposeVal = GetDataFromExcel(excelPath,"Details of Content",3,12)
+   sectorVal = GetDataFromExcel(excelPath,"Details of Content",3,13)
+   territoriesVal = GetDataFromExcel(excelPath,"Select Planned Use",3,7)
+   printrunVal = GetDataFromExcel(excelPath,"Select Planned Use",3,8)
+   retailpriceVal = GetDataFromExcel(excelPath,"Select Planned Use",3,9)
+   estimatedsalesVal = GetDataFromExcel(excelPath,"Select Planned Use",3,10)
+   estimatedCDsalesVal = GetDataFromExcel(excelPath,"Select Planned Use",3,11)
+   estimateddownloadsalesVal = GetDataFromExcel(excelPath,"Select Planned Use",3,12)
+   audiencerestrictedinanywayVal = GetDataFromExcel(excelPath,"Select Planned Use",3,13)
+   expectednumberofvisitorsVal = GetDataFromExcel(excelPath,"Select Planned Use",3,14)
+   circulationVal = GetDataFromExcel(excelPath,"Select Planned Use",3,15)
+   openaccessVal = GetDataFromExcel(excelPath,"Select Planned Use",3,16)
+   estimatednumberofticketsalesVal = GetDataFromExcel(excelPath,"Select Planned Use",3,17)
+   numberofslidesVal = GetDataFromExcel(excelPath,"Select Planned Use",3,18)
+   totalruntimeVal = GetDataFromExcel(excelPath,"Select Planned Use",3,19)
+   numberofusersVal = GetDataFromExcel(excelPath,"Select Planned Use",3,20)
+   formatVal = GetDataFromExcel(excelPath,"Select Planned Use",3,21)
+   methodofdistributionVal = GetDataFromExcel(excelPath,"Select Planned Use",3,22)
+   periodoftimeVal = GetDataFromExcel(excelPath,"Select Planned Use",3,23)
+   perioddownloadisactiveVal = GetDataFromExcel(excelPath,"Select Planned Use",3,24)
+   numberofstudentsusingVal = GetDataFromExcel(excelPath,"Select Planned Use",3,25)
+   numberofpagesVal = GetDataFromExcel(excelPath,"Select Planned Use",3,26)
+   '########################
+   savedprojectVal = "thesis"
+   '#######################
+   expectedstatusVal = "Pending"
+  
+
+  ''####################  SCRIPT  ################################################################
+    ''## Launch the PLS clear in required browser
+    Call Launch_PLSclear(browserVal,urlVal)
+    Set browser = Sys.FindChild("ProcessName",browserVal,1)
+    Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),1)
+    ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    '# Close any dialogues that appears on screen
+    Call ActionOnAlertDialog(browserVal,"Yes")
+    ''## Login as requestor
+    Call Login(browserVal,usernameVal,passwordVal,"pass","stop")
+    ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    ''## Close any dialogues that appears on screen
+    Call ActionOnAlertDialog(browserVal,"Yes")
+    '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    ''## SEARCH FOR A TITLE
+    Call SearchTitle(browserVal,searchtypeVal,searchVal)
+    ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    ''## SELECT A TITLE FROM THE SEARCH RESULTS
+    Call SelectSearchResult(browserVal,resultVal,isnVal)
+    ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    ''## SELECT CONTENT
+    Call SelectContent(browserVal,textextractVal,poemVal,illustrationVal,tableVal,articleVal)
+    ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    ''## DETAILS OF CONTENT
+    Call Details_of_Content_MandatoryParameters(DetofContentParamsArr)
+      
+    '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    '## SELECT PLANNED USE
+    Call SelectPlannedUsage_getexcelvalueLogic(browserVal,usagetypeVal,usagesubtypeVal,reuseprojectswitchVal,savedprojectVal,_
+      excelPath,selectplanneduseexcelsheet)
+    '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    '## DETAILS OF USAGE
+   If reuseprojectswitchVal = "No" then
+    Call DetailsOfUsage_mandatoryparameters(browserVal, ArrDetofusageParams)     
+   End If
+
+  '#''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+  '## REVIEW REQUEST
+   Call Review_Request(browserVal)
+     
+    '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''' 
+    '## REQUEST MANAGER
+    '## Verifies if Request is made Succesfully and the request title is found in the top row of the Request Manager table
+    Set browser = Sys.FindChild("ProcessName",browserVal,1)
+    Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),10)
+    Set sentrequestslink = page.FindChildByXPath("//a[contains(.,'Sent Requests')]")
+    Call sentrequestslink.Click
+    Call Delay(1000)
+    Call browser.Refresh
+    Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),10)
+    Set rmtable = page.FindChildByXPath("//table[@class='listView tableRequestor']")
+    Set isncell = rmtable.FindChild(Array("ColumnIndex","RowIndex","Visible"),Array(2,1,True),2)
+    Log.Message("isnVal = "& isnVal)
+    If isncell.contentText = isnVal then
+      Log.Checkpoint("Request Test Passed: Request was made successfully for '"& resultVal &"'. Requested ISN found in the 'Request Manager' table top row")
+    Else
+      Log.Error("Request Test Failed: Request could NOT be made for '"& resultVal &"'. Requested ISN NOT found in the 'Request Manager' table top row.")
+    End If
+     ''## Status check point
+    Call status_validation(browserVal,expectedstatusVal)
+    
+    '# Reset the color code on 'Select planned use'
+    Set objExcel = Sys.OleObject("Excel.Application")
+    objExcel.DisplayAlerts = 0
+    objExcel.Workbooks.Open excelPath
+  	Set currentWorkSheet = objExcel.ActiveWorkbook.Worksheets(selectplanneduseexcelsheet)
+  	usedColumnsCount = currentWorkSheet.UsedRange.Columns.Count
+  	usedRowsCount = currentWorkSheet.UsedRange.Rows.Count
+  	Set Cells = currentWorksheet.Cells
+    Set objRange1 = objExcel.Columns.Range("D:F")
+    Set objRange2 = objExcel.Columns.Range("G:Y")
+    objRange1.Interior.ColorIndex = 15
+    objRange2.Interior.ColorIndex = 2
+    objExcel.ActiveWorkbook.SaveAs(excelPath)
+    objExcel.Quit
+  	Set currentWorkSheet = Nothing
+   
+   
+  End Sub

@@ -1,0 +1,1142 @@
+﻿'USEUNIT LIBRARY
+'USEUNIT LIBRARY_REQUESTMANAGER
+   
+
+    ''***********************************************************************************************************************
+    ''                                              FOC RELATED 
+    ''***********************************************************************************************************************
+    ''##################################### Function to set FoC parameter on programme manager ###################################
+    ''# General function to set any type of parameter unit on FoC license. It covers checkbox type and textbox types of parameters based on label inputs.
+        '# labelVal implies the parameter label. inputVal implies the input we want to type in textboxes or the checkboxes we want to select
+    Function Set_UnitParameter_FoC(browserVal,labelVal,inputVal)
+      Set browser = Sys.FindChild("ProcessName",browserVal,1)
+      Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),1)
+      Set focpanelcontainer = page.FindChildByXPath("//div[@class='focViewContainers']")
+      Set formblock = focpanelcontainer.FindChild(Array("className","innerText","Visible"),Array("formblock","*"&labelVal&"*",True),5)
+      Set formblockradiolist = focpanelcontainer.FindChild(Array("className","innerText","Visible"),Array("formblock radiolist*","*"&labelVal&"*",True),5)
+      Set formblockradioboolean = focpanelcontainer.FindChild(Array("className","innerText","Visible"),Array("formblock radio boolean*","*"&labelVal&"*",True),5)
+      If formblock.Exists then
+        Set inputtextbox = formblock.FindChild("localName","INPUT",7)
+        If inputVal <> "" then
+          Call inputtextbox.SetText(inputVal)
+        Else
+          Call inputtextbox.SetText("")
+        End If
+        Log.Message("'"& labelVal &"' = "&"'"& inputVal &"'")
+      ElseIf formblockradiolist.Exists then
+        allinputcheckboxes = formblockradiolist.FindAllChildren("tagName","INPUT",5)
+        For i = 0 to Ubound(allinputcheckboxes)
+          If allinputcheckboxes(i).checked = True then
+          Call allinputcheckboxes(i).Click
+          End If
+        Next
+        Set checkboxlabel = formblockradiolist.FindChild(Array("tagName","innerText"),Array("LABEL","*"&inputVal&"*"),5)
+        Set inputcheckbox = checkboxlabel.Parent.FindChild("tagName","INPUT",5)
+        If inputVal <> "" then
+        If inputcheckbox.checked = False then
+          Call inputcheckbox.Click
+        Else
+          Set inputcheckbox_selected = formblockradiolist.FindChild(Array("localName","checked"),Array("INPUT",True),5)
+          If inputcheckbox_selected.checked = "False" then
+            Call inputcheckbox_selected.Click
+          End If
+        End If
+        End If
+        Log.Message("'"& labelVal &"' = '"& inputVal &"'")
+      ElseIf formblockradioboolean.Exists then
+        Set inputcheckbox = formblockradioboolean.FindChild(Array("localName","ObjectLabel"),Array("INPUT",inputVal),7)
+        If inputVal <> "" then
+          If inputcheckbox.checked = False then
+            Call inputcheckbox.Click
+          Else
+            Set inputcheckbox_selected = formblockradioboolean.FindChild(Array("localName","checked"),Array("INPUT",True),7)
+            Call inputcheckbox_selected.Click
+          End If
+        End If
+        Log.Message("'"& labelVal &"' = '"& inputVal &"'")
+      End If
+    End Function
+    ''#######################################################################################################
+    ''## Parameter array for 'Set_Bulk_FOC_programme' function
+    Dim focparam_Arr
+    focparam_Arr = Array(optalltitlesVal,thesisVal, thesispercontentVal, tdwordcountVal, tdtablecountVal, tddiagramcountVal, authorrequestVal, authorpercontentVal, awordcountVal, atablecountVal, adiagramcountVal, owordcountVal, otablecountVal, odiagramcountVal, ocircbyformatVal, ototalcircVal, oprintcircVal, oebookcircVal, owebcircVal, oterritoryVal, autolevelValFOC)
+    ''####################################### SETS FOC PROGRAMME ##############################################
+    Function Set_Bulk_FOC_programme(browserVal,focparam_Arr)
+        Log.Message("Set_Bulk_FOC_programme function begins")
+        Set browser = Sys.FindChild("ProcessName",browserVal,1)
+        Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),1)
+        ''## Navigate to Request Manager
+        Call NavigateToPage(browserVal,"Programme Manager")
+        Call Delay(500)
+        Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),1)
+        ''# Click on FoC link
+        Set foclnk = page.FindChild(Array("ObjectType","outerText"),Array("Link","Free Of Charge*"),17)
+        Do 
+          If foclnk.Exists then
+            Exit Do
+          Else
+            Set foclnk = page.FindChild(Array("ObjectType","outerText"),Array("Link","Free Of Charge*"),17)
+          End If
+        Loop 
+        Do
+          If foclnk.Width <> 0 then
+            Exit Do
+          Else
+            Set foclnk = page.FindChild(Array("ObjectType","outerText","VisibleOnScreen"),Array("Link","Free Of Charge*""True"),17) 
+          End If
+        Loop
+        Call foclnk.Click
+        Call Delay(5000)
+        ''# Clicks on Edit Button
+        Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),1)
+        Set editbtn = page.FindChildByXPath("//input[@title='Click to edit']")
+        If Not editbtn is Nothing then
+          If editbtn.Width <> 0 then
+            Call editbtn.Click
+            Call Delay(1000)
+            Log.Message("Edit button clicked")
+          End If
+        Else
+          Log.Warning("Edit button Not found. Either there is no existing FoC programme Or Edit button did not appear for the TestComplete to click")
+        End If
+       ''# Select 'Opt all titles into the programme'
+       Set optalltitleslabelpnl = page.FindChild(Array("className","contentText"),Array("formlabel","Opt all my titles into this programme?"),25)
+       If optalltitlesVal = "Yes" then
+         If optalltitleslabelpnl.Parent.FindChild(Array("ObjectType","ObjectLabel"),Array("RadioButton","Yes"),10).wChecked = False then
+         Call optalltitleslabelpnl.Parent.FindChild(Array("ObjectType","ObjectLabel"),Array("RadioButton","Yes"),10).Click
+         End If
+       ElseIf optalltitlesVal = "No" then
+         If optalltitleslabelpnl.Parent.FindChild(Array("ObjectType","ObjectLabel"),Array("RadioButton","No"),10).wChecked = False then
+         Call optalltitleslabelpnl.Parent.FindChild(Array("ObjectType","ObjectLabel"),Array("RadioButton","No"),10).Click
+         End If
+       End If
+       If optalltitlesVal = "Yes" then
+       ''# Expands 'Requests for Thesis and Dissertations' node
+        Call page.FindChildByXPath("//h3[contains(.,'Requests for Thesis and Dissertations')]").Click
+        Log.Message("'Requests for Thesis and Dissertations' expanded")
+        Set focpanelcontainer = page.FindChildByXPath("//div[@class='focViewContainers']")
+        Set thesischeckbox = focpanelcontainer.FindChild(Array("ObjectType","ObjectLabel"),Array("Checkbox","All Dissertation or Thesis requests"),20)
+        If thesisVal = "Yes" then
+          If thesischeckbox.checked = False then
+            thesischeckbox.ClickChecked(True)
+            Log.Message("All Dissertation or Thesis requests = Yes")
+          ElseIf thesischeckbox.checked = True then
+            Log.Message("All Dissertation or Thesis requests = Yes")
+          End If
+        ElseIf thesisVal = "No" then
+          If thesischeckbox.checked = True then
+            thesischeckbox.ClickChecked(False)
+            Log.Message("All Dissertation or Thesis requests = No")
+          ElseIf thesischeckbox.checked = False then
+            Log.Message("All Dissertation or Thesis requests = No")
+          End If
+        End If
+        If thesisVal = "Yes" then
+          Call Set_UnitParameter_FoC(browserVal,"Do you want to set parameters per content type?",thesispercontentVal)
+          If thesispercontentVal = "Yes" then
+            Call Set_UnitParameter_FoC(browserVal,"Maximum word count",tdwordcountVal)
+            Call Set_UnitParameter_FoC(browserVal,"Maximum number Tables & Charts",tdtablecountVal)
+            Call Set_UnitParameter_FoC(browserVal,"Maximum number Illustrations & Diagrams",tddiagramcountVal)
+          End If
+        End If
+       ''# Expands 'Author Requests' node
+        Call page.FindChildByXPath("//h3[contains(.,'Author Requests')]").Click
+        Log.Message("'Author Requests' expanded")
+        Set authorrequestcheckbox = focpanelcontainer.FindChild(Array("ObjectType","ObjectLabel"),Array("Checkbox","All Author requests to re-use their own work"),20)
+        If authorrequestVal = "Yes" then
+          If authorrequestcheckbox.checked = False then
+            authorrequestcheckbox.ClickChecked(True)
+            Log.Message("All Author requests to re-use their own work = Yes")
+          ElseIf authorrequestcheckbox.checked = True then
+            Log.Message("All Author requests to re-use their own work = Yes")
+          End If
+        ElseIf authorrequestVal = "No" then
+          If authorrequestcheckbox.checked = True then
+            authorrequestcheckbox.ClickChecked(False)
+            Log.Message("All Author requests to re-use their own work = No")
+          ElseIf authorrequestcheckbox.checked = False then
+            Log.Message("All Author requests to re-use their own work = No")
+          End If
+        End If
+        
+        If authorrequestVal = "Yes" then
+          Call Set_UnitParameter_FoC(browserVal,"Do you want to set parameters per content type?",authorpercontentVal)
+          If authorpercontentVal = "Yes" then
+            Call Set_UnitParameter_FoC(browserVal,"Maximum word count",awordcountVal)
+            Call Set_UnitParameter_FoC(browserVal,"Maximum number Tables & Charts",atablecountVal)
+            Call Set_UnitParameter_FoC(browserVal,"Maximum number Illustrations & Diagrams",adiagramcountVal)
+          End If
+        End If
+        ''# Expands 'Other Requests' node
+        Call page.FindChildByXPath("//h3[contains(.,'Other Requests')]").Click
+        Log.Message("'Other Requests' expanded")
+        Call Set_UnitParameter_FoC(browserVal,"Maximum word count",owordcountVal)
+        Call Set_UnitParameter_FoC(browserVal,"Maximum number Tables & Charts",otablecountVal)
+        Call Set_UnitParameter_FoC(browserVal,"Maximum number Illustrations & Diagrams",odiagramcountVal)
+        Call Set_UnitParameter_FoC(browserVal,"Do you want to set circulation by format?",ocircbyformatVal)
+        Call Set_UnitParameter_FoC(browserVal,"Maximum total circulation",ototalcircVal)
+        Call Set_UnitParameter_FoC(browserVal,"Maximum print circulation",oprintcircVal)
+        Call Set_UnitParameter_FoC(browserVal,"Maximum Ebook circulation",oebookcircVal)
+        Call Set_UnitParameter_FoC(browserVal,"Maximum web circulation",owebcircVal)
+        Call Set_UnitParameter_FoC(browserVal,"Territory",oterritoryVal)
+        ''## Set Automation level
+        Call Set_UnitParameter_FoC(browserVal,"Issue of FoC licences",autolevelValFOC)
+        End If
+        ''## Clicks Apply button
+        Set applybtn = page.FindChildByXPath("//input[@value='Apply']")
+        Call applybtn.Click
+        ''## Delay waits for confirmation dialog to appear
+        Call Delay(2000)
+        ''## Below line clicks on ok button on the confirmation dialog that appears when settings are changed
+        Set browser = Sys.FindChild("ProcessName",browserVal,1)
+        Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),1)
+        Set okconfirmbtn = page.FindChildByXPath("//button[contains(.,'Ok')]")
+        Do
+          If Not okconfirmbtn is Nothing then
+            Call okconfirmbtn.Click
+            Exit Do
+          Else
+            Set okconfirmbtn = page.FindChildByXPath("//button[contains(.,'Ok')]")
+          End If
+        Loop
+        ''## Scrolls the page up in order to view the parameters panel
+        Set plsclearlogo = page.FindChildByXPath("//a[@title='Go to main site']")
+        Call plsclearlogo.scrollIntoView(1)
+        ''## Captures the picture of Summary of Parameters for review
+        Set paramsummarycontainer = page.FindChild("className","paramSummaryContainer",30)
+        Log.Message("Parameter Summary picture captured below. Click on 'Picture' tab under test log to view Parameter summary")
+        Log.Picture(paramsummarycontainer)
+    End Function
+    
+    
+    ''***********************************************************************************************************************
+    ''                                              FPL RELATED 
+    ''***********************************************************************************************************************
+
+    ''##################################### Function to set FoC parameter on programme manager ###################################
+    '# General function to set any type of parameter unit on FoC license. It covers checkbox type and textbox types of parameters based on label inputs.
+    '# labelVal implies the parameter label. inputVal implies the input we want to type in textboxes or the checkboxes we want to select
+    Function Set_UnitParameter_FPL(browserVal,labelVal,inputVal)
+      Set browser = Sys.FindChild("ProcessName",browserVal,1)
+      Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),1)
+      Call Delay(500)
+      Set fplpanelcontainer = page.FindChildByXPath("//div[@class='slideContent']")
+      Set rightsContainer = fplpanelcontainer.FindChildByXPath("//div[@id='rightsContainer']")
+      Set formblock = rightsContainer.FindChild(Array("className","innerText"),Array("formblock","*"&labelVal&"*"),3)
+      Set formblockradiolist = rightsContainer.FindChild(Array("className","innerText"),Array("formblock radiolist","*"&labelVal&"*"),3)
+      Set formblockradioboolean = rightsContainer.FindChild(Array("className","innerText"),Array("formblock radio boolean","*"&labelVal&"*"),3)
+      If formblock.Exists then
+        Set inputtextbox = formblock.FindChild("localName","INPUT",5)
+        Set selectdropdown = formblock.FindChild("localName","select",5)
+        If inputtextbox.Exists then
+          If inputVal <> "" then
+            Call inputtextbox.SetText(inputVal)
+          Else
+            Call inputtextbox.SetText("")
+          End If
+        ElseIf selectdropdown.Exists then
+          If inputVal <> "" then
+            Call selectdropdown.ClickItem(inputVal)
+          End If
+        End If
+        Log.Message("'"& labelVal &"' = "&"'"& inputVal &"'")
+      ElseIf formblockradioboolean.Exists then
+        Set inputcheckbox = formblockradioboolean.FindChild(Array("localName","outerHTML"),Array("INPUT","*"&inputVal&"*"),5)
+        If inputVal <> "" then
+        If inputcheckbox.checked = False then
+          Call inputcheckbox.Click
+        Else
+          Set inputcheckbox_selected = formblockradioboolean.FindChild(Array("localName","checked"),Array("INPUT",True),5)
+          Call inputcheckbox_selected.Click
+        End If
+        End If
+        Log.Message("'"& labelVal &"' = '"& inputVal &"'")
+      ElseIf formblockradiolist.Exists then
+        allinputcheckboxes = formblockradiolist.FindAllChildren("tagName","INPUT",5)
+        For i = 0 to Ubound(allinputcheckboxes)
+          Call allinputcheckboxes(i).ClickChecked(False)
+        Next
+        Set checkboxlabel = formblockradiolist.FindChild(Array("tagName","innerText"),Array("LABEL","*"&inputVal&"*"),5)
+        Set inputcheckbox = checkboxlabel.Parent.FindChild("tagName","INPUT",2)
+        If inputVal <> "" then
+        If inputcheckbox.checked = False then
+          Call inputcheckbox.Click
+        Else
+          Set inputcheckbox_selected = formblockradiolist.FindChild(Array("localName","checked"),Array("INPUT",True),5)
+          Call inputcheckbox_selected.ClickChecked(True)
+        End If
+        End If
+      End If
+    End Function
+    ''##################################################################################################################################
+    Function FPLmandate_formatsettings_unit(browserVal,labelVal,checkVal)
+      Set browser = Sys.FindChild("ProcessName",browserVal,1)
+      Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),1)
+      Set fplpanelcontainer = page.FindChildByXPath("//div[@class='slideContent']")
+      Set rightsContainer = fplpanelcontainer.FindChildByXPath("//div[@id='rightsContainer']")
+      Set multitree = rightsContainer.FindChild("className","multitree",15)
+      Set labelpanel = multitree.FindChildByXPath("//span[@class='section-label'][contains(.,'"& labelVal &"')]")
+      If labelpanel.Width = 0 then
+        Set collapsesection = labelpanel.Parent.Parent.FindChildByXPath("//span")
+        Call collapsesection.Click
+      End If
+      If labelpanel.Parent.Checkbox(0).VisibleOnScreen = False then
+        Call labelpanel.Parent.Checkbox(0).scrollIntoView(1)
+      End If
+      If checkVal = "Yes" then
+        Call labelpanel.Parent.Checkbox(0).ClickChecked(True)
+        Log.Message("'"& labelVal &"' = "& checkVal)
+      ElseIf checkVal = "No" then
+        Call labelpanel.Parent.Checkbox(0).ClickChecked(False)
+      End If
+    End Function
+    
+    ''#####################################################################################################################################
+    ''## Parameter array for 'Set_Bulk_FPL_programme' function
+    Dim fplparam_Arr 
+    fplparam_Arr = Array(optalltitlesVal,hardbackcheckVal,paperbackcheckVal,magazinecheckVal,advertcheckVal,ebookcheckVal,onlineeditioncheckVal,downloadfilecheckVal,webpagecheckVal,livestreamcheckVal,appcheckVal,audiobookcheckVal,podcastcheckVal,radiocheckVal,tvcheckVal,presentationscheckVal,printcoursepackcheckVal,electroniccoursepackcheckVal,electroniccoursepackcheckVal,thesischeckVal,_
+    circulationrestrictionsVal,maxtotalcirculationVal,maxprintcirculationVal,maxebookcirculationVal,maxwebcirculationVal,fplterritoryVal,languageVal,lifetimelicenceVal,yearsoflicenceVal,yearsoflicenceVal,_
+    pricebysectorcheckboxVal,useonepriceforallsectorsVal,setindividualpricespersectorVal,sectorwordsVal,sectortableVal,sectorimageVal,sectorwordsreviewcheckboxVal,sectortablereviewcheckboxVal,sectorimagereviewcheckboxVal,sectorVal0,sectorVal1,sectorVal2,sectorVal3,sectorwordsVal0,sectorwordsVal1,sectorwordsVal2,sectorwordsVal3,sectortableVal0,sectortableVal1,sectortableVal2,sectortableVal3,sectorimageVal0,sectorimageVal1,sectorimageVal2,sectorimageVal3,sectorwordsreviewcheckboxVal0,sectorwordsreviewcheckboxVal1,sectorwordsreviewcheckboxVal2,sectorwordsreviewcheckboxVal3,_
+    sectortablereviewcheckboxVal0,sectortablereviewcheckboxVal1,sectortablereviewcheckboxVal2,sectortablereviewcheckboxVal3,sectorimagereviewcheckboxVal0,sectorimagereviewcheckboxVal1,sectorimagereviewcheckboxVal2,sectorimagereviewcheckboxVal3,_
+    purposewordsVal,purposetableVal,purposeimageVal,purposewordsreviewcheckboxVal,purposetablereviewcheckboxVal,purposeimagereviewcheckboxVal,setindividualpricesperpurposeVal,useonepriceforallpurposeVal,pricebypurposecheckboxVal,purposeVal0,purposeVal1,purposeVal2,purposewordsVal0,purposewordsVal1,purposewordsVal3,purposetableVal0,purposetableVal1,purposetableVal2,purposeimageVal0,purposeimageVal1,purposeimageVal2,purposewordsreviewcheckboxVal0,purposewordsreviewcheckboxVal1,purposewordsreviewcheckboxVal2,purposetablereviewcheckboxVal0,purposetablereviewcheckboxVal1,purposetablereviewcheckboxVal2,purposeimagereviewcheckboxVal0,purposeimagereviewcheckboxVal1,purposeimagereviewcheckboxVal2,_
+    circulationwordsVal,circulationtableVal,circulationimageVal,circulationwordsreviewcheckboxVal,circulationtablereviewcheckboxVal,circulationimagereviewcheckboxVal,useonepriceforallcirculationVal,setindividualpricespercirculationVal,pricebycirculationcheckboxVal,circulationxVal0,circulationxVal1,circulationxVal2,circulationxVal3,circulationxVal4,circulationxVal5,circulationxVal6,circulationxVal7,circulationyVal0,circulationyVal1,circulationyVal2,circulationyVal3,circulationyVal4,circulationyVal5,circulationyVal6,circulationyVal7,_
+    circulationwordsVal0,circulationwordsVal1,circulationwordsVal2,circulationwordsVal3,circulationwordsVal4,circulationwordsVal5,circulationwordsVal6,circulationwordsVal7,circulationtableVal0,circulationtableVal1,circulationtableVal2,circulationtableVal3,circulationtableVal4,circulationtableVal5,circulationtableVal6,circulationtableVal7,circulationimageVal0,circulationimageVal1,circulationimageVal3,circulationimageVal4,circulationimageVal5,circulationimageVal6,circulationimageVal7,_
+    circulationwordsreviewcheckboxVal0,circulationwordsreviewcheckboxVal1,circulationwordsreviewcheckboxVal2,circulationwordsreviewcheckboxVal3,circulationwordsreviewcheckboxVal4,circulationwordsreviewcheckboxVal5,circulationwordsreviewcheckboxVal6,circulationwordsreviewcheckboxVal7,circulationtablereviewcheckboxVal0,circulationtablereviewcheckboxVal1,circulationtablereviewcheckboxVal2,circulationtablereviewcheckboxVal3,circulationtablereviewcheckboxVal4,circulationtablereviewcheckboxVal5,circulationtablereviewcheckboxVal6,circulationtablereviewcheckboxVal7,_
+    circulationimagereviewcheckboxVal0,circulationimagereviewcheckboxVal1,circulationimagereviewcheckboxVal2,circulationimagereviewcheckboxVal3,circulationimagereviewcheckboxVal4,circulationimagereviewcheckboxVal5,circulationimagereviewcheckboxVal6,circulationimagereviewcheckboxVal7,photocopyVal,scanningVal,autolevelValFPL)
+    
+    ''##################################### Set FPL parameters ############################################################################                                                               
+    Function Set_Bulk_FPL_programme(browserVal,fplparam_Arr)
+      Log.Message("Set_Bulk_FPL_programme function begins")
+      Set browser = Sys.FindChild("ProcessName",browserVal,1)
+      Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),2)
+      ''## Navigate to Request Manager
+      Call NavigateToPage(browserVal,"Programme Manager")
+      ''# Click on FoC link
+      Set browser = Sys.FindChild("ProcessName",browserVal,1)
+      Call Delay(1000)
+      Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),2)
+      Set fpllnk = page.FindChild("idStr","ctl00_PLSMainContent_rpClearProgrammes_ctl01_customHyper",30)
+      Call PLS_Delay(browserVal,fpllnk)
+      Call fpllnk.Click
+      Log.Message("Fpl link on Programme Manager is clicked")
+      Set browser = Sys.FindChild("ProcessName",browserVal,1)
+      Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),10)
+      Set fplpageheader = page.FindChild(Array("idStr","Visible"),Array("ctl00_PageSummary_PageHeading",True),30)
+      Do 
+        If Not fplpageheader is Nothing then
+          Exit Do
+        Else
+          Set fplpageheader = page.FindChild(Array("idStr","Visible"),Array("ctl00_PageSummary_PageHeading",True),30)
+        End If
+      Loop 
+      ''# Clicks on Edit Button
+      Call Delay(3000)
+      Set editbtn = page.FindChildByXPath("//input[@title='Click to edit']")
+      If Not editbtn is Nothing then
+        If editbtn.VisibleOnScreen then
+          Call editbtn.Click
+          Log.Message("Edit button is clicked")
+        Else
+          Log.Message("'Edit' button Not found. Either FPL mandate did not exist earlier for this account Or 'Edit' button did not appear for the TestComplete to click")
+        End If
+      End If
+      Call Delay(500)
+      Set fplpanelcontainer = page.FindChildByXPath("//div[@class='slideContent']")
+      Do 
+        If Not fplpanelcontainer is Nothing then
+          Exit Do
+        Else
+          Set fplpanelcontainer = page.FindChildByXPath("//div[@class='slideContent']")
+        End If
+      Loop 
+    
+     ''# Select 'Opt all titles into the programme'
+     Set optalltitlespnl = page.FindChild(Array("ObjectIdentifier"),Array("rdBulkInclude"),25)
+     If optalltitlesVal = "Yes" then
+       If optalltitlespnl.FindChild(Array("ObjectType","ObjectLabel"),Array("RadioButton","Yes"),10).wChecked = False then
+         Call optalltitlespnl.FindChild(Array("ObjectType","ObjectLabel"),Array("RadioButton","Yes"),10).Click
+         Call page.FindChild(Array("ObjectIdentifier","ObjectType"),Array("Set Bulk Parameters","Button"),20).Click
+         Call Delay(2000)
+       End If
+     ElseIf optalltitlesVal = "No" then
+       If optalltitlespnl.FindChild(Array("ObjectType","ObjectLabel"),Array("RadioButton","No"),10).wChecked = False then
+         Call optalltitlespnl.FindChild(Array("ObjectType","ObjectLabel"),Array("RadioButton","No"),10).Click
+       End If
+     End If
+      ''# All print formats
+      Call FPLmandate_formatsettings_unit(browserVal,"Hardback",hardbackcheckVal)
+      Call FPLmandate_formatsettings_unit(browserVal,"Paperback",paperbackcheckVal)
+      Call FPLmandate_formatsettings_unit(browserVal,"Magazine / Journal / Theatrical Programme",magazinecheckVal)
+      Call FPLmandate_formatsettings_unit(browserVal,"Advertisement / Poster",advertcheckVal)
+      ''# All digital formats
+      Call FPLmandate_formatsettings_unit(browserVal,"eBook",ebookcheckVal)
+      Call FPLmandate_formatsettings_unit(browserVal,"Online Edition",onlineeditioncheckVal)
+      Call FPLmandate_formatsettings_unit(browserVal,"Download File",downloadfilecheckVal)
+      Call FPLmandate_formatsettings_unit(browserVal,"Webpage",webpagecheckVal)
+      Call FPLmandate_formatsettings_unit(browserVal,"Live Stream (webcast)",livestreamcheckVal)
+      Call FPLmandate_formatsettings_unit(browserVal,"App",appcheckVal)
+      ''# All audio formats
+      Call FPLmandate_formatsettings_unit(browserVal,"Audiobook",audiobookcheckVal)
+      Call FPLmandate_formatsettings_unit(browserVal,"Podcast",podcastcheckVal)
+      Call FPLmandate_formatsettings_unit(browserVal,"Radio",radiocheckVal)
+      ''# All Multimedia formats
+      Call FPLmandate_formatsettings_unit(browserVal,"TV",tvcheckVal)
+      Call FPLmandate_formatsettings_unit(browserVal,"Presentations",presentationscheckVal)
+      ''# All other formats
+      Call FPLmandate_formatsettings_unit(browserVal,"Print Coursepack",printcoursepackcheckVal)
+      Call FPLmandate_formatsettings_unit(browserVal,"Electronic Coursepack",electroniccoursepackcheckVal)
+      Call FPLmandate_formatsettings_unit(browserVal,"Thesis / White Paper / Consultation Document",thesischeckVal)
+      ''#########
+      ''## Do you want to set circulation restrictions by format?
+      Call Set_UnitParameter_FPL(browserVal,"Do you want to set circulation restrictions by format?",circulationrestrictionsVal)
+      If circulationrestrictionsVal = "Yes" then
+        ''## Maximum print circulation:
+        Call Set_UnitParameter_FPL(browserVal,"Maximum print circulation:",maxprintcirculationVal)
+        ''## Maximum Ebook circulation:
+        Call Set_UnitParameter_FPL(browserVal,"Maximum Ebook circulation:",maxebookcirculationVal)
+        ''## Maximum web circulation:
+        Call Set_UnitParameter_FPL(browserVal,"Maximum web circulation:",maxwebcirculationVal)
+      ElseIf circulationrestrictionsVal = "No" then
+        ''## Maximum total circulation:
+        Call Set_UnitParameter_FPL(browserVal,"Maximum total circulation:",maxtotalcirculationVal)
+      End If
+     
+      ''## Territory:
+      Call Set_UnitParameter_FPL(browserVal,"Territory:",fplterritoryVal)
+      ''## Language:
+      Call Set_UnitParameter_FPL(browserVal,"Language:",languageVal)
+      ''## Set duration to lifetime of licencee's edition?:
+      Call Set_UnitParameter_FPL(browserVal,"Set duration to lifetime of licencee's edition?:",lifetimelicenceVal)
+      
+      If lifetimelicenceVal = "No" then
+         If yearsfromlicenceissuedateVal = "Yes" then
+           Call fromlicenceissuedatepanel.RadioButton(0).Click
+           Set fromlicenceissuedatepanel = fplpanelcontainer.FindChild(Array("className","contentText"),Array("formobject","years from licence issue date"),20)
+           Call fromlicenceissuedatepanel.FindChild("ObjectType","Textbox",5).Keys(yearsoflicenceVal)
+         ElseIf yearsfrompublicationdateVal = "No" then
+           Set frompublicationdatepanel = fplpanelcontainer.FindChild(Array("className","contentText"),Array("formobject","years from publication date"),20)
+           Call frompublicationdatepanel.RadioButton(0).Click
+           Call frompublicationdatepanel.FindChild("ObjectType","Textbox",5).Keys(yearsoflicenceVal)
+         End If
+      End If
+      ''## Clicks Continue button
+      Set continuebtn = page.FindChildByXPath("//input[@value='Continue']")
+      Call continuebtn.Click
+      
+      ''##################### PRICE SETTINGS ########################################################
+      Call Delay(500)
+      Set fplpanelcontainer = page.FindChildByXPath("//div[@class='slideContent']")
+      Set feecontainer = fplpanelcontainer.FindChild("idStr","standardFeeContainer",20)
+      ''################## PRICE BY SECTOR
+      ''# Selects the checkbox
+      Set sectorcollapsebox = feecontainer.FindChild(Array("className","ObjectIdentifier"),Array("collapseBox","0"),10)
+      Set pricebysectorcheckbox = sectorcollapsebox.FindChild("ObjectIdentifier","matrixitems_1_checked",10)
+      If pricebysectorcheckboxVal = "Yes" then
+        pricebysectorcheckbox.ClickChecked(True)
+      ElseIf pricebysectorcheckboxVal = "No" then
+        pricebysectorcheckbox.ClickChecked(False)
+      End If
+      '''''''''''''''''''''''''''''''''''''''''''''''''''
+      ''# Use one price for sector Or Set individual prices per sector selection
+      If pricebysectorcheckboxVal = "Yes" then
+        Set useonepriceforalllabel = sectorcollapsebox.FindChild(Array("ObjectType","contentText"),Array("Label","Use one price for all sectors"),10)
+        Set setindividualpriceslabel = sectorcollapsebox.FindChild(Array("ObjectType","contentText"),Array("Label","Set individual prices per sector"),10)
+        If useonepriceforallsectorsVal = "Yes" then
+          If useonepriceforalllabel.Parent.RadioButton(0).wChecked = False then
+            Call useonepriceforalllabel.Parent.RadioButton(0).Click
+          End If
+          Log.Message("'use one price for all sectors' checkbox selected")
+        ElseIf setindividualpricespersectorVal = "Yes" then
+          If setindividualpriceslabel.Parent.RadioButton(0).wChecked = False then
+            Call setindividualpriceslabel.Parent.RadioButton(0).Click
+          End If
+          Log.Message("'set individual prices per sector' checkbox selected")
+        End If
+      End If
+      ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+      Set sectorsmatrix = sectorcollapsebox.FindChild("idStr","Sectors-Matrix",20)
+      
+      If setindividualpricespersectorVal = "Yes" And pricebysectorcheckboxVal = "Yes" then  
+      '## clicks on all the 'Remove' buttons if they exist, in order to erase the previous price values. 'Remove' buttons 
+      '# exist if there exists any previous settings for setindividualpricespersectorVal.
+        removebutton = sectorsmatrix.FindAllChildren(Array("ObjectIdentifier","Visible"),Array("Remove",True),20)
+        For i = 0 to Ubound(removebutton)
+          Call removebutton(i).Click
+        Next
+        ''###
+        If setindividualpricespersectorVal = "Yes" then
+        ''# As there are 5 items under the dropdown. The for loop range is between 0 to 4.
+        ''# Eval funtion is used to treat "i" as a string and not variable.
+          For i = 0 to 4
+            sectorValeval = eval("sectorVal"&i)
+            If sectorValeval <> "" then
+              Set sectordropdown = sectorsmatrix.FindChild("ObjectType","Select",10)
+              If sectordropdown.wText = "-- Select --" then
+                Call sectordropdown.ClickItem(sectorValeval)
+                Call sectordropdown.DblClick
+              Else 
+                Log.Warning("sectordropdown.wText <> ""-- Select -- """ & ". The default item in the dropdown should be 'select'")
+              End If
+              rowS = i + 3
+              ''# words price
+              sectorwordsValeval = eval("sectorwordsVal"&i)
+              Set per1000wordstextbox = sectorsmatrix.FindChild(Array("RowIndex","ColumnIndex"),Array(rowS,1),20).FindChild("ObjectType","Textbox",2)       
+              Call per1000wordstextbox.SetText(sectorwordsValeval)
+              sectorwordsreviewcheckboxValeval = eval("sectorwordsreviewcheckboxVal"&i)
+              ''# words price review
+              If sectorwordsreviewcheckboxValeval = "Yes" then
+                Set sectorwordsreviewcheckbox = sectorsmatrix.FindChild(Array("RowIndex","ColumnIndex"),Array(rowS,1),20).FindChild("ObjectType","Checkbox",2)
+                Call sectorwordsreviewcheckbox.ClickChecked(True)
+              End If
+              ''# Table price
+              sectortableValeval = eval("sectortableVal"&i)
+              Set sectorpertabletextbox = sectorsmatrix.FindChild(Array("RowIndex","ColumnIndex"),Array(rowS,2),20).FindChild("ObjectType","Textbox",2) 
+              Call sectorpertabletextbox.SetText(sectortableValeval) 
+              ''# table price review
+              sectortablereviewcheckboxValeval = eval("sectortablereviewcheckboxVal"&i)
+              If sectortablereviewcheckboxValeval = "Yes" then
+                Set sectortablereviewcheckbox = sectorsmatrix.FindChild(Array("RowIndex","ColumnIndex"),Array(rowS,2),20).FindChild("ObjectType","Checkbox",2)
+                Call sectortablereviewcheckbox.ClickChecked(True)
+              End If
+              ''# Image price
+              sectorimageValeval = eval("sectorimageVal"&i)
+              Set sectorimagetextbox = sectorsmatrix.FindChild(Array("RowIndex","ColumnIndex"),Array(rowS,3),20).FindChild("ObjectType","Textbox",2) 
+              Call sectorimagetextbox.SetText(sectorimageValeval)   
+              ''# Image price review
+              sectorimagereviewcheckboxValeval = eval("sectorimagereviewcheckboxVal"&i)
+              If sectorimagereviewcheckboxValeval = "Yes" then
+                Set sectorimagereviewcheckbox = sectorsmatrix.FindChild(Array("RowIndex","ColumnIndex"),Array(rowS,3),20).FindChild("ObjectType","Checkbox",2)
+                Call sectorimagereviewcheckbox.ClickChecked(True)
+              End If
+              Set addsectorbtn = sectorsmatrix.FindChild(Array("ObjectIdentifier","VisibleOnScreen"),Array("Add",True),15)
+              Call addsectorbtn.Click
+            End If
+          Next
+        End If
+        '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+      ElseIf useonepriceforallsectorsVal = "Yes" And pricebysectorcheckboxVal = "Yes" then
+         Set sectorcollapsebox = feecontainer.FindChild(Array("className","ObjectIdentifier"),Array("collapseBox","0"),10)
+         Set sectorsmatrix = sectorcollapsebox.FindChild("idStr","Sectors-Matrix",20)
+         ''# words price
+         Set per1000wordstextbox = sectorsmatrix.FindChild(Array("RowIndex","ColumnIndex"),Array(1,1),20).FindChild("ObjectType","Textbox",2)       
+         Call per1000wordstextbox.SetText(sectorwordsVal)
+         ''# words price review
+         If sectorwordsreviewcheckboxVal = "Yes" then
+           Set sectorwordsreviewcheckbox = sectorsmatrix.FindChild(Array("RowIndex","ColumnIndex"),Array(1,1),20).FindChild("ObjectType","Checkbox",2)
+           Call sectorwordsreviewcheckbox.ClickChecked(True)
+         End If
+         ''# Table price
+         Set sectorpertabletextbox = sectorsmatrix.FindChild(Array("RowIndex","ColumnIndex"),Array(1,2),20).FindChild("ObjectType","Textbox",2) 
+         Call sectorpertabletextbox.SetText(sectortableVal) 
+         ''# table price review
+         If sectortablereviewcheckboxVal = "Yes" then
+           Set sectortablereviewcheckbox = sectorsmatrix.FindChild(Array("RowIndex","ColumnIndex"),Array(1,2),20).FindChild("ObjectType","Checkbox",2)
+           Call sectortablereviewcheckbox.ClickChecked(True)
+         End If
+         ''# Image price
+         Set sectorimagetextbox = sectorsmatrix.FindChild(Array("RowIndex","ColumnIndex"),Array(1,3),20).FindChild("ObjectType","Textbox",2) 
+         Call sectorimagetextbox.SetText(sectorimageVal)   
+         ''# Image price review
+         If sectorimagereviewcheckboxVal = "Yes" then
+           Set sectorimagereviewcheckbox = sectorsmatrix.FindChild(Array("RowIndex","ColumnIndex"),Array(1,3),20).FindChild("ObjectType","Checkbox",2)
+           Call sectorimagereviewcheckbox.ClickChecked(True)
+         End If
+      End If
+      '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+      ''###################
+      ''# PRICE BY Purpose
+      ''##################
+      ''# Selects the checkbox
+      Set purposecollapsebox = feecontainer.FindChild(Array("className","ObjectIdentifier"),Array("collapseBox","1"),10)
+      Set pricebypurposecheckbox = purposecollapsebox.FindChild("ObjectIdentifier","matrixitems_2_checked",10)
+      If pricebypurposecheckboxVal = "Yes" then
+        pricebypurposecheckbox.ClickChecked(True)
+      ElseIf pricebypurposecheckboxVal = "No" then
+        pricebypurposecheckbox.ClickChecked(False)
+      End If
+      ''# Use one price for purpose Or Set individual prices per  purpose setting
+      If pricebypurposecheckboxVal = "Yes" then
+        Set useonepriceforalllabel = purposecollapsebox.FindChild(Array("ObjectType","contentText"),Array("Label","Use one price for all purposes of use"),10)
+        Set setindividualpriceslabel = purposecollapsebox.FindChild(Array("ObjectType","contentText"),Array("Label","Set individual prices per purpose of use"),10)
+        If useonepriceforallpurposeVal = "Yes" then
+          If useonepriceforalllabel.Parent.RadioButton(0).wChecked = False then
+            Call useonepriceforalllabel.Parent.RadioButton(0).Click
+          End If
+          Log.Message("'use one price for all purpose of use' checkbox selected")
+        ElseIf setindividualpricesperpurposeVal = "Yes" then
+          If setindividualpriceslabel.Parent.RadioButton(0).wChecked = False then
+            Call setindividualpriceslabel.Parent.RadioButton(0).Click
+          End If
+          Log.Message("'set individual prices per purpose of use' checkbox selected")
+        End If
+      End If
+      
+      '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+      Set purposematrix = purposecollapsebox.FindChild("idStr","Purposes-Matrix",20)
+      
+      If setindividualpricesperpurposeVal = "Yes" And pricebypurposecheckboxVal = "Yes" then
+      ''## Makes sure to click on all the 'Remove' buttons if they exist, in order to erase the previous price values. 'Remove' buttons 
+      ''# exist if there exists any previous settings for setindividualpricesperpurposeVal.
+        removebutton = purposematrix.FindAllChildren(Array("ObjectIdentifier","Visible"),Array("Remove",True),20)
+        For i = 0 to Ubound(removebutton)
+          Call removebutton(i).Click
+        Next
+        ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+        If setindividualpricesperpurposeVal = "Yes" then
+        ''# As there are 3 items under the dropdown. The for loop range is between 0 to 3.
+        ''# Eval funtion is used to treat "i" as a string and not variable.
+          For i = 0 to 2
+            purposeValeval = eval("purposeVal"&i)
+            If purposeValeval <> "" then
+              Set purposedropdown = purposematrix.FindChild("ObjectType","Select",10)
+              If purposedropdown.wText = "-- Select --" then
+                Call purposedropdown.ClickItem(purposeValeval)
+                 Call purposedropdown.DblClick
+              Else 
+                Log.Warning("purposedropdown.wText <> ""-- Select -- """ & ". The default item in the dropdown should be 'select'")
+              End If
+              rowS = i + 3
+              ''# words price
+              purposewordsValeval = eval("purposewordsVal"&i)
+              Set per1000wordstextbox = purposematrix.FindChild(Array("RowIndex","ColumnIndex"),Array(rowS,1),30).FindChild("ObjectType","Textbox",2)        
+              Call per1000wordstextbox.SetText(purposewordsValeval)
+              ''# words price review
+               purposewordsreviewcheckboxValeval = eval("purposewordsreviewcheckboxVal"&i)
+              If purposewordsreviewcheckboxValeval = "Yes" then
+                Set purposewordsreviewcheckbox = purposematrix.FindChild(Array("RowIndex","ColumnIndex"),Array(rowS,1),30).FindChild("ObjectType","Checkbox",2)
+                Call purposewordsreviewcheckbox.ClickChecked(True)
+              End If
+              ''# Table price
+              purposetableValeval = eval("purposetableVal"&i)
+              Set purposepertabletextbox = purposematrix.FindChild(Array("RowIndex","ColumnIndex"),Array(rowS,2),30).FindChild("ObjectType","Textbox",2) 
+              Call purposepertabletextbox.SetText(purposetableValeval) 
+              ''# table price review
+              purposetablereviewcheckboxValeval = eval("purposetablereviewcheckboxVal"&i)
+              If purposetablereviewcheckboxValeval = "Yes" then
+                Set purposetablereviewcheckbox = purposematrix.FindChild(Array("RowIndex","ColumnIndex"),Array(rowS,2),20).FindChild("ObjectType","Checkbox",2)
+                Call purposetablereviewcheckbox.ClickChecked(True)
+              End If
+              ''# Image price
+              purposeimageValeval = eval("purposeimageVal"&i)
+              Set purposeimagetextbox = purposematrix.FindChild(Array("RowIndex","ColumnIndex"),Array(rowS,3),20).FindChild("ObjectType","Textbox",2) 
+              Call purposeimagetextbox.SetText(purposeimageValeval)   
+              ''# Image price review
+              purposeimagereviewcheckboxValeval = eval("purposeimagereviewcheckboxVal"&i)
+              If purposeimagereviewcheckboxValeval = "Yes" then
+                Set purposeimagereviewcheckbox = purposematrix.FindChild(Array("RowIndex","ColumnIndex"),Array(rowS,3),20).FindChild("ObjectType","Checkbox",2)
+                Call purposeimagereviewcheckbox.ClickChecked(True)
+              End If
+              Set addpurposebtn = purposematrix.FindChild(Array("ObjectIdentifier","VisibleOnScreen"),Array("Add",True),15)
+              Call addpurposebtn.Click
+            End If
+          Next
+        End If
+        ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+      ElseIf useonepriceforallpurposeVal = "Yes" And pricebypurposecheckboxVal = "Yes" then
+         Set purposecollapsebox = feecontainer.FindChild(Array("className","ObjectIdentifier"),Array("collapseBox","1"),10)
+         Set purposematrix = purposecollapsebox.FindChild("idStr","Purposes-Matrix",20)
+         ''# words price
+         Set per1000wordstextbox = purposematrix.FindChild(Array("RowIndex","ColumnIndex"),Array(1,1),20).FindChild("ObjectType","Textbox",2)        
+         Call per1000wordstextbox.SetText(purposewordsVal)
+
+         ''# words price review
+         If purposewordsreviewcheckboxVal = "Yes" then
+           Set purposewordsreviewcheckbox = purposematrix.FindChild(Array("RowIndex","ColumnIndex"),Array(1,1),20).FindChild("ObjectType","Checkbox",2)
+           Call purposewordsreviewcheckbox.ClickChecked(True)
+         End If
+         ''# Table price
+         Set purposepertabletextbox = purposematrix.FindChild(Array("RowIndex","ColumnIndex"),Array(1,2),20).FindChild("ObjectType","Textbox",2) 
+         Call purposepertabletextbox.SetText(purposetableVal) 
+         ''# table price review
+         If purposetablereviewcheckboxVal = "Yes" then
+           Set purposetablereviewcheckbox = purposematrix.FindChild(Array("RowIndex","ColumnIndex"),Array(1,2),20).FindChild("ObjectType","Checkbox",2)
+           Call purposetablereviewcheckbox.ClickChecked(True)
+         End If
+         ''# Image price
+         Set purposeimagetextbox = purposematrix.FindChild(Array("RowIndex","ColumnIndex"),Array(1,3),20).FindChild("ObjectType","Textbox",2) 
+         Call purposeimagetextbox.SetText(purposeimageVal)   
+         ''# Image price review
+         If purposeimagereviewcheckboxVal = "Yes" then
+           Set purposeimagereviewcheckbox = purposematrix.FindChild(Array("RowIndex","ColumnIndex"),Array(1,3),20).FindChild("ObjectType","Checkbox",2)
+           Call purposeimagereviewcheckbox.ClickChecked(True)
+         End If
+      End If
+      
+      ''#######################
+      ''# PRICE BY Circulation
+      ''#######################
+      ''# Selects the checkbox
+      Set circulationcollapsebox = feecontainer.FindChild(Array("className","ObjectIdentifier"),Array("collapseBox","2"),10)
+      Set pricebycirculationcheckbox = circulationcollapsebox.FindChild("ObjectIdentifier","matrixitems_3_checked",10)
+      If pricebycirculationcheckboxVal = "Yes" then
+        pricebycirculationcheckbox.ClickChecked(True)
+      ElseIf pricebycirculationcheckboxVal = "No" then
+        pricebycirculationcheckbox.ClickChecked(False)
+      End If
+      ''# Use one price for all circulation levels Or Set individual prices for different circulation levels
+      If pricebycirculationcheckboxVal = "Yes" then
+        Set useonepriceforalllabel = circulationcollapsebox.FindChild(Array("ObjectType","contentText"),Array("Label","Use one price for all circulation levels"),10)
+        Set setindividualpriceslabel = circulationcollapsebox.FindChild(Array("ObjectType","contentText"),Array("Label","Set individual prices for different circulation levels"),10)
+        If useonepriceforallcirculationVal = "Yes" then
+          If useonepriceforalllabel.Parent.RadioButton(0).wChecked = False then
+            Call useonepriceforalllabel.Parent.RadioButton(0).Click
+          End If
+          Log.Message("'use one price for all circulation levels' checkbox selected")
+        ElseIf setindividualpricespercirculationVal = "Yes" then
+          If setindividualpriceslabel.Parent.RadioButton(0).wChecked = False then
+            Call setindividualpriceslabel.Parent.RadioButton(0).Click
+          End If
+          Log.Message("'Set individual prices for different circulation levels' checkbox selected")
+        End If
+      End If
+      
+      Set circulationmatrix = circulationcollapsebox.FindChild("idStr","Circulations-Matrix",20)
+      
+      If setindividualpricespercirculationVal = "Yes" then
+      ''## Makes sure to click on all the 'Remove' buttons if they exist, in order to erase the previous price values. 'Remove' buttons 
+      ''# exist if there exists any previous settings for setindividualpricespercirculationVal.
+        removebutton = circulationmatrix.FindAllChildren(Array("ObjectIdentifier","Visible"),Array("Remove",True),20)
+        For i = 0 to Ubound(removebutton)
+          Call removebutton(i).Click
+        Next
+        ''########
+        If setindividualpricespercirculationVal = "Yes" then
+        ''# As there are 8 items under the dropdown. The for loop range is between 0 to 7.
+        ''# Eval funtion is used to treat "i" as a string and not variable.
+          For i = 0 to 7
+            circulationxValeval = eval("circulationxVal"&i)
+            If circulationxValeval <> "" then
+              ''# dropdown 1
+              Set circulationdropdown1 = circulationmatrix.FindChild(Array("ObjectType","ObjectIdentifier"),Array("Select","0"),10)
+              If circulationdropdown1.wText = "-- Select --" then
+                Call circulationdropdown1.ClickItem(circulationxValeval)
+                Call circulationdropdown1.Click
+                Call circulationdropdown1.Click
+              Else 
+                Log.Warning("circulationdropdown1.wText <> ""-- Select -- """ & ". The default item in the dropdown should be 'select'")
+              End If
+              ''# dropdown 2
+              circulationyValeval = eval("circulationyVal"&i)
+              Set circulationdropdown2 = circulationmatrix.FindChild(Array("ObjectType","ObjectIdentifier"),Array("Select","1"),10)
+              If circulationdropdown2.wText = "-- Select --" then
+                Call circulationdropdown2.ClickItem(circulationyValeval)
+                Call circulationdropdown2.Click
+                Call circulationdropdown2.Click
+              Else 
+                Log.Warning("circulationdropdown2.wText <> ""-- Select -- """ & ". The default item in the dropdown should be 'select'")
+              End If
+              ''###
+              rowS = i + 2
+              '# words price
+              circulationwordsValeval = eval("circulationwordsVal"&i)
+              Set per1000wordstextbox = circulationmatrix.FindChild(Array("RowIndex","ColumnIndex"),Array(rowS,1),20).FindChild("ObjectType","Textbox",2)      
+              Call per1000wordstextbox.SetText(circulationwordsValeval)
+              circulationwordsreviewcheckboxValeval = eval("circulationwordsreviewcheckboxVal"&i)
+              ''# words price review
+              If circulationwordsreviewcheckboxValeval = "Yes" then
+                Set circulationwordsreviewcheckbox = circulationmatrix.FindChild(Array("RowIndex","ColumnIndex"),Array(rowS,1),20).FindChild("ObjectType","Checkbox",2)
+                Call circulationwordsreviewcheckbox.ClickChecked(True)
+              End If
+              ''# Table price
+              circulationtableValeval = eval("circulationtableVal"&i)
+              Set circulationpertabletextbox = circulationmatrix.FindChild(Array("RowIndex","ColumnIndex"),Array(rowS,2),20).FindChild("ObjectType","Textbox",2) 
+              Call circulationpertabletextbox.SetText(circulationtableValeval) 
+              ''# table price review
+              circulationtablereviewcheckboxValeval = eval("circulationtablereviewcheckboxVal"&i)
+              If circulationtablereviewcheckboxValeval = "Yes" then
+                Set circulationtablereviewcheckbox = circulationmatrix.FindChild(Array("RowIndex","ColumnIndex"),Array(rowS,2),20).FindChild("ObjectType","Checkbox",2)
+                Call circulationtablereviewcheckbox.ClickChecked(True)
+              End If
+              '# Image price
+              circulationimageValeval = eval("circulationimageVal"&i)
+              Set circulationimagetextbox = circulationmatrix.FindChild(Array("RowIndex","ColumnIndex"),Array(rowS,3),20).FindChild("ObjectType","Textbox",2) 
+              Call circulationimagetextbox.Keys(circulationimageValeval)   
+              ''# Image price review
+              circulationimagereviewcheckboxValeval = eval("circulationimagereviewcheckboxVal"&i)
+              If circulationimagereviewcheckboxValeval = "Yes" then
+                Set circulationimagereviewcheckbox = circulationmatrix.FindChild(Array("RowIndex","ColumnIndex"),Array(rowS,3),20).FindChild("ObjectType","Checkbox",2)
+                Call circulationimagereviewcheckbox.ClickChecked(True)
+              End If
+              Call Delay(1000)
+              Set addcirculationbtn = circulationmatrix.FindChild(Array("ObjectIdentifier","VisibleOnScreen"),Array("Add",True),15)
+              Call addcirculationbtn.Click
+            End If
+          Next
+        End If
+      ElseIf useonepriceforallcirculationVal = "Yes" And pricebycirculationcheckboxVal = "Yes" then
+         Set circulationcollapsebox = feecontainer.FindChild(Array("className","ObjectIdentifier"),Array("collapseBox","2"),10)
+         Set circulationmatrix = circulationcollapsebox.FindChild("idStr","Circulations-Matrix",20)
+         ''# words price
+         Set per1000wordstextbox = circulationmatrix.FindChild(Array("RowIndex","ColumnIndex"),Array(1,1),20).FindChild("ObjectType","Textbox",2)       
+         Call per1000wordstextbox.SetText(circulationwordsVal)
+         ''# words price review
+         If circulationwordsreviewcheckboxVal = "Yes" then
+           Set circulationwordsreviewcheckbox = circulationmatrix.FindChild(Array("RowIndex","ColumnIndex"),Array(1,1),20).FindChild("ObjectType","Checkbox",2)
+           Call circulationwordsreviewcheckbox.ClickChecked(True)
+         End If
+         ''# Table price
+         Set circulationpertabletextbox = circulationmatrix.FindChild(Array("RowIndex","ColumnIndex"),Array(1,2),20).FindChild("ObjectType","Textbox",2) 
+         Call circulationpertabletextbox.SetText(circulationtableVal) 
+         ''# table price review
+         If circulationtablereviewcheckboxVal = "Yes" then
+           Set circulationtablereviewcheckbox = circulationmatrix.FindChild(Array("RowIndex","ColumnIndex"),Array(1,2),20).FindChild("ObjectType","Checkbox",2)
+           Call circulationtablereviewcheckbox.ClickChecked(True)
+         End If
+         ''# Image price
+         Set circulationimagetextbox = circulationmatrix.FindChild(Array("RowIndex","ColumnIndex"),Array(1,3),20).FindChild("ObjectType","Textbox",2) 
+         Call circulationimagetextbox.SetText(circulationimageVal)   
+         ''# Image price review
+         If circulationimagereviewcheckboxVal = "Yes" then
+           Set circulationimagereviewcheckbox = circulationmatrix.FindChild(Array("RowIndex","ColumnIndex"),Array(1,3),20).FindChild("ObjectType","Checkbox",2)
+           Call circulationimagereviewcheckbox.ClickChecked(True)
+         End If
+      End If
+      '#################
+      '# PRICE PER COPY
+      '################
+      Set coursepackmatrix = fplpanelcontainer.FindChild(Array("idStr","Visible"),Array("Coursepacks-Matrix",True),20)
+      Set photocopytextbox = coursepackmatrix.FindChild(Array("RowIndex","ColumnIndex","Visible"),Array(1,1,True),20).FindChild("ObjectType","Textbox",2) 
+      If photocopyVal <> "" then
+        photocopytextbox.scrollIntoView(1)
+        photocopytextbox.SetText(photocopyVal)
+      End If
+      Set scanningtextbox = coursepackmatrix.FindChild(Array("RowIndex","ColumnIndex","Visible"),Array(2,1,True),20).FindChild("ObjectType","Textbox",2) 
+      If scanningVal <> "" then
+        scanningtextbox.scrollIntoView(1)
+        scanningtextbox.SetText(scanningVal)
+      End If
+      ''#######################
+      ''## Set Automation level
+      ''#######################
+      Set quoteissuinglabel = page.FindChild(Array("ObjectType","contentText","Width"),Array("Label",autolevelValFPL,"regexp:[^0]+"),30)
+      Set inputcheckbox = quoteissuinglabel.Parent.FindChild("tagName","INPUT",2)
+      If inputcheckbox.checked = False then
+        Call inputcheckbox.Click
+      End If
+            
+      ''## Click 'Save' button
+      Set savebtn = fplpanelcontainer.FindChild(Array("ObjectLabel","ObjectType"),Array("Save","Button"),20)
+      Call savebtn.Click
+     
+      ''## Delay waits for confirmation dialog to appear
+      Call Delay(3000)
+      ''## Below line clicks on ok button on the confirmation dialog that appears when settings are changed
+      Set browser = Sys.FindChild("ProcessName",browserVal,1)
+      Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),1)
+      Set okconfirmbtn = page.FindChildByXPath("//button[contains(.,'Ok')]")
+      Do 
+      If Not okconfirmbtn is Nothing then
+        Exit Do
+      Else
+        Set okconfirmbtn = page.FindChildByXPath("//button[contains(.,'Ok')]")
+      End If
+      Loop 
+      Call okconfirmbtn.Click
+      Call Delay(500)
+      ''## Scrolls the page up in order to view the parameters panel
+      Set browser = Sys.FindChild("ProcessName",browserVal,1)
+      Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),1)
+      Set plsclearlogo = page.FindChildByXPath("//a[@title='Go to main site']")
+      Call plsclearlogo.scrollIntoView(1)
+      ''## Captures the picture of Summary of Parameters for review
+      Set paramsummarycontainer = page.FindChild("className","paramSummaryContainer",30)
+      Log.Message("Parameter Summary picture captured below. Click on 'Picture' tab under test log to view Parameter summary")
+      Log.Picture(paramsummarycontainer)
+    End Function
+    
+       
+    ''############################## Function to calculate total price based on FPL settings  ##################
+    Dim GetTotalPriceParamsArr
+    GetTotalPriceParamsArr = Array(browserVal,noofwordsVal,tableVal,illustrationVal,sectorVal,purposeVal,usagetypeVal,numberofusersVal,numberofpagesVal,expectedquotation)
+    
+    Function GetTotalPrice(GetTotalPriceParamsArr)
+      ''## Expected quotation value - Get
+      Set browser = Sys.FindChild("ProcessName",browserVal,1)
+      Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),1) 
+      Set editbtn = page.FindChildByXPath("//input[@title='Click to edit']")
+      Call editbtn.Click
+      Set fplpanelcontainer = page.FindChildByXPath("//div[@class='slideContent']")
+      Call PLS_Delay(browserVal,fplpanelcontainer)
+      ''## Clicks Continue button
+      Set continuebtn = page.FindChildByXPath("//input[@value='Continue']")
+      Call continuebtn.Click
+      Set feecontainer = fplpanelcontainer.FindChild("idStr","standardFeeContainer",20)
+      Call PLS_Delay(browserVal,feecontainer)
+      If usagetypeVal <> "Print Photocopying" And usagetypeVal <> "Electronic Photocopying/Scanning" then
+      ''## SECTOR CALCULATION
+      ''# Get values from sectors matrix
+      Set sectorcollapsebox = feecontainer.FindChild(Array("className","ObjectIdentifier"),Array("collapseBox","0"),10)
+      Set sectorsmatrix = sectorcollapsebox.FindChild("idStr","Sectors-Matrix",20)
+      Set table1 = sectorsmatrix.FindChild("tagName","TABLE",3)
+      Call table1.scrollIntoView(1)
+      If table1.Cell(1,1).Width <> 0 then
+        ''## get 
+        swordsValue1 = table1.Cell(1,1).FindChild("ObjectType","Textbox",2).Text
+        stableValue1 = table1.Cell(1,2).FindChild("ObjectType","Textbox",2).Text
+        simageValue1 = table1.Cell(1,3).FindChild("ObjectType","Textbox",2).Text
+        ''## algorithm
+        stotalwordsValue = (noofwordsVal*swordsValue1)/(1000) 
+        stotaltableValue = (tableVal*stableValue1)
+        stotalimageValue = (illustrationVal*simageValue1)
+        sectorpricevalue = (stotalwordsValue+stotaltableValue+stotalimageValue)
+      ElseIf table1.FindChild("RowIndex","3").Width <> 0 then
+        ''## get
+        If table1.FindChild(Array("ColumnIndex","contentText"),Array("0",sectorVal)).Exists then
+          sectorRow = table1.FindChild(Array("ColumnIndex","contentText"),Array("0",sectorVal)).RowIndex
+          swordsValue2 = table1.Cell(sectorRow,1).FindChild("ObjectType","Textbox",2).Text
+          stableValue2 = table1.Cell(sectorRow,2).FindChild("ObjectType","Textbox",2).Text
+          simageValue2 = table1.Cell(sectorRow,3).FindChild("ObjectType","Textbox",2).Text     
+          ''## alg
+          stotalwordsValue = (noofwordsVal*swordsValue2)/(1000)   
+          stotaltableValue = (tableVal*stableValue2)
+          stotalimageValue = (illustrationVal*simageValue2)
+          sectorpricevalue = (stotalwordsValue+stotaltableValue+stotalimageValue)
+        End If
+      End If
+      ''## PURPOSE CALCULATION
+      ''# Get values from purpose matrix
+      Set purposecollapsebox = feecontainer.FindChild(Array("className","ObjectIdentifier"),Array("collapseBox","1"),10)
+      Set purposematrix = purposecollapsebox.FindChild("idStr","Purposes-Matrix",20)
+      Set table2 = purposematrix.FindChild("tagName","TABLE",3)
+      Call table2.scrollIntoView(1)
+      If table2.Cell(1,1).Width <> 0 then
+        ''## get 
+        pwordsValue1 = table2.Cell(1,1).FindChild("ObjectType","Textbox",2).Text
+        ptableValue1 = table2.Cell(1,2).FindChild("ObjectType","Textbox",2).Text
+        pimageValue1 = table2.Cell(1,3).FindChild("ObjectType","Textbox",2).Text
+        ''## algorithm
+        ptotalwordsValue = (noofwordsVal*pwordsValue1)/(1000) 
+        ptotaltableValue = (tableVal*ptableValue1)
+        ptotalimageValue = (illustrationVal*pimageValue1)
+        purposepricevalue = (ptotalwordsValue+ptotaltableValue+ptotalimageValue)
+      ElseIf table2.FindChild("RowIndex","3").Width <> 0  then
+        ''## get
+        If table2.FindChild(Array("ColumnIndex","contentText"),Array("0",purposeVal)).Exists then
+          purposeRow = table2.FindChild(Array("ColumnIndex","contentText"),Array("0",purposeVal)).RowIndex
+          pwordsValue2 = table2.Cell(purposeRow,1).FindChild("ObjectType","Textbox",2).Text
+          ptableValue2 = table2.Cell(purposeRow,2).FindChild("ObjectType","Textbox",2).Text
+          pimageValue2 = table2.Cell(purposeRow,3).FindChild("ObjectType","Textbox",2).Text     
+          ''## alg  
+          ptotalwordsValue = (noofwordsVal*pwordsValue2)/(1000) 
+          ptotaltableValue = (tableVal*ptableValue2)
+          ptotalimageValue = (illustrationVal*pimageValue2)
+          purposepricevalue = (ptotalwordsValue+ptotaltableValue+ptotalimageValue)
+        End If
+      End If
+      
+      ''## CIRCULATION CALCULATION
+      ''# Get values from circulation matrix
+      Set circulationcollapsebox = feecontainer.FindChild(Array("className","ObjectIdentifier"),Array("collapseBox","2"),10)
+      Set circulationmatrix = circulationcollapsebox.FindChild("idStr","Circulations-Matrix",20)
+      Set table3 = circulationmatrix.FindChild("tagName","TABLE",3)
+      Call table3.scrollIntoView(1)
+     
+      If table3.Cell(1,1).Width <> 0 then
+        ''## get 
+        cwordsValue1 = table3.Cell(1,1).FindChild("ObjectType","Textbox",2).Text
+        ctableValue1 = table3.Cell(1,2).FindChild("ObjectType","Textbox",2).Text
+        cimageValue1 = table3.Cell(1,3).FindChild("ObjectType","Textbox",2).Text
+        ''## algorithm
+        ctotalwordsValue = (noofwordsVal*cwordsValue1)/(1000)
+        ctotaltableValue = (tableVal*ctableValue1)
+        ctotalimageValue = (illustrationVal*cimageValue1)
+        circulationpricevalue = (ctotalwordsValue+ctotaltableValue+ctotalimageValue)
+      ElseIf table3.FindChild("RowIndex","2").Width <> 0  then
+        ''## get
+        cwordsValue2 = table3.Cell(2,1).FindChild("ObjectType","Textbox",2).Text
+        ctableValue2 = table3.Cell(2,2).FindChild("ObjectType","Textbox",2).Text
+        cimageValue2 = table3.Cell(2,3).FindChild("ObjectType","Textbox",2).Text   
+            ''## alg 
+        ctotalwordsValue = (noofwordsVal*cwordsValue2)/(1000)
+        ctotaltableValue = (tableVal*ctableValue2)
+        ctotalimageValue = (illustrationVal*cimageValue2)
+        circulationpricevalue = (ctotalwordsValue+ctotaltableValue+ctotalimageValue)
+      End If
+      ''## Total of all the above
+      expectedquotation = FormatNumber(Round((sectorpricevalue + purposepricevalue + circulationpricevalue)+0.4),2)
+      Log.Message("Expected quotation = "& expectedquotation)
+      ElseIf usagetypeVal = "Print Photocopying" or usagetypeVal = "Electronic Photocopying/Scanning" then  
+        ''# PRICE PER COPY
+        Set coursepackmatrix = fplpanelcontainer.FindChild(Array("idStr","Visible"),Array("Coursepacks-Matrix",True),20)
+        If purposeVal = "Educational" then
+          Set photocopytextbox = coursepackmatrix.FindChild(Array("RowIndex","ColumnIndex","Visible"),Array(1,1,True),20).FindChild("ObjectType","Textbox",2) 
+          photocopypriceValue = photocopytextbox.Text
+          expectedquotation = FormatNumber(Round((photocopypriceValue*numberofusersVal*numberofpagesVal)+0.4),2,-1,0,0)
+        End If
+        If purposeVal = "Commercial" Or purposeVal = "Research" then
+          Set photocopytextbox = coursepackmatrix.FindChild(Array("RowIndex","ColumnIndex","Visible"),Array(2,1,True),20).FindChild("ObjectType","Textbox",2) 
+          photocopypriceValue = photocopytextbox.Text
+          expectedquotation = FormatNumber(Round((photocopypriceValue*numberofusersVal*numberofpagesVal)+0.4),2,-1,0,0)
+        End If
+        Log.Message("Expected quotation = "& expectedquotation)
+      End If
+      ''## Click 'Save' button
+      Set closebtn = fplpanelcontainer.FindChild(Array("contentText","ObjectType"),Array("Close","Link"),20)
+      Call closebtn.Click
+    End Function
+    
+    ''********************************************************************************************************************
+    ''************************************ OTHER FUNCTIONS ***************************************************************
+    ''********************************************************************************************************************
+    ''#################################### Gets the issn1 value of top most Title From list of titles falling under FPL programme ########## 
+      '# Use this function to get one of the title from the programme in order to test the status changes.
+    Function Get_Programme_Title(browserVal,issn1,searchVal)
+      Log.Message("Function Get_Programme_Title")
+      Set browser = Sys.FindChild("ProcessName",browserVal,1)
+      Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),1)
+       ''## Click 'Search for individual titles' tab on 'Customise titles' panel to get issn value of one of the title (here top row title)
+      Set pnlAddRepertoireResults = page.FindChild(Array("idStr","Visible"),Array("ctl00_PLSMainContent_pnlAddRepertoireResults",True),25)
+      If pnlAddRepertoireResults.Exists then
+        Call pnlAddRepertoireResults.scrollIntoView(0)
+        Call pnlAddRepertoireResults.Click
+      End If
+      Call Delay(1000)
+      ''## Click space btn and click enter btn in the search box on excluded titles panel
+      Call page.FindChild("idStr","ctl00_PLSMainContent_titles_keywords",20).scrollIntoView(1)
+      Call page.FindChild("idStr","ctl00_PLSMainContent_titles_keywords",20).Keys(" ")
+      Call page.FindChild(Array("ObjectLabel","ObjectType","Width"),Array("Search","SubmitButton","regexp:[^0]+"),30).Click
+      Call Delay(5000)
+      ''## Confirm dialog 'Ok' button click
+      Call page.FindChild(Array("ObjectLabel","VisibleOnScreen"),Array("OK",True),15).Click
+      Set pnlAddRepertoireResults = page.FindChild("idStr","ctl00_PLSMainContent_pnlAddRepertoireResults",30)
+      Set resultstable = pnlAddRepertoireResults.FindChild(Array("ObjectType","VisibleOnScreen"),Array("Table",True),5)
+      Do 
+        If resultstable.Exists then
+          Exit Do
+        Else
+          Set resultstable = pnlAddRepertoireResults.FindChild(Array("ObjectType","VisibleOnScreen"),Array("Table",True),5)
+        End If
+      Loop 
+      If resultstable.Exists then
+        If resultstable.Cell(2, 4).contentText <> "" then
+          issn1 = resultstable.Cell(2, 4).contentText
+          searchVal = issn1
+        ElseIf resultstable.Cell(2, 4).contentText = "" then
+         LOG.mESSAGE(resultstable.Cell(2, 4).contentText)
+          issn1 = searchVal
+        End If  
+      ElseIf resultstable.Exists = False then
+        issn1 = searchVal
+      End If
+      
+    End Function
+    
+    ''############################################################################################
+    ''#################################### Function to Exclude Top Title From FPL programme ######
+    Function Exclude_TopTitle_From_Programme(browserVal,issn1)
+      Log.Message("Function Exclude_TopTitle_From_Programme")
+      Set browser = Sys.FindChild("ProcessName",browserVal,1)
+      Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),1)
+      ''## Click 'Search for individual titles' tab on 'Customise titles' panel to get issn value of one of the title (here top row title)
+      Set pnlAddRepertoireResults = page.FindChild("idStr","ctl00_PLSMainContent_lnkAddRepertoire",30)
+      Call pnlAddRepertoireResults.Click
+       ''## Click space btn and click enter btn in the search box on excluded titles panel
+      Call Delay(1000)
+      Set pmsearchkeywords = page.FindChild("idStr","ctl00_PLSMainContent_titles_keywords",35)
+      Call pmsearchkeywords.scrollIntoView(1)
+      Call pmsearchkeywords.Keys(" ")
+      Call page.FindChild(Array("ObjectLabel","ObjectType","Width"),Array("Search","SubmitButton","regexp:[^0]+"),30).Click
+      Call Delay(2000)
+      ''## Confirm dialog 'Ok' button click
+      Call page.FindChild(Array("ObjectLabel","VisibleOnScreen"),Array("OK",True),30).Click
+      Set pnlAddRepertoireResults = page.FindChild("idStr","ctl00_PLSMainContent_pnlAddRepertoireResults",30)
+      Set table = pnlAddRepertoireResults.FindChild(Array("ObjectType","VisibleOnScreen"),Array("Table",True),5)
+      issn1 = table.Cell(2, 4).contentText
+      Call table.Cell(2, 7).FindChild("ObjectType","Checkbox",3).ClickChecked(True)
+      Call page.FindChild("idStr","ctl00_PLSMainContent_tbAddRepertoire_Button_1_dropdown",30).ClickItem("Remove selected from programme")
+      Call page.FindChild("idStr","ctl00_PLSMainContent_tbAddRepertoire_Button_1",30).Click
+      Call Delay(2000)
+      Set confirmdlg = page.FindChild(Array("className","VisibleOnScreen"),Array("ui-dialog ui-widget ui-widget-content*",True),15)
+      Call confirmdlg.FindChild(Array("contentText","ObjectType"),Array("Yes","Button"),30).Click
+      Call Delay(10000)
+      Call page.Refresh
+      Set alertdlg = page.FindChild(Array("className","Visible"),Array("ui-dialog ui-widget ui-widget-content ui-corner-all ui-front ui-draggable ui-resizable ui-dialog-buttons",True),15)
+      If alertdlg.Exists then                                           
+        Call alertdlg.FindChild(Array("contentText","ObjectType"),Array("OK","Button"),10).Click
+      End If
+    End Function
+    
+    ''#########################################################################################
+    ''#################################### Function to Resets customized titles on FPL ################
+     Function reset_customised_Title_fpl(browserVal,issn1)
+      Log.Message("Function reset_customised_Title_fpl")
+      Set browser = Sys.FindChild("ProcessName",browserVal,1)
+      Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),1)
+      ''# Scroll into view the panel to customise titles
+      Call Delay(1000)
+      Call page.FindChild("idStr","ctl00_PLSMainContent_lnkLicence",30).scrollIntoView(1)
+      ''## Click the search for individual titles tab
+      Call page.FindChild("idStr","ctl00_PLSMainContent_lnkLicence",30).Click
+      Call Delay(1000)
+      ''#####################################################
+      ''# Commented out below lines because the search functionality failed 
+'      ''## Search for issn value that was excluded from programme
+'      Call page.FindChild("idStr","ctl00_PLSMainContent_keywords",30).Keys(issn1)
+'      ''## Search button click
+'      Call page.FindChild("idStr","ctl00_PLSMainContent_btnSearchExceptionsKeywords",30).Click 
+'      Call Delay(2000)
+'      ''## confirm button on dialog window was clicked
+'      Set confirmdlg1 = page.FindChild(Array("ObjectLabel","VisibleOnScreen"),Array("OK",True),30)
+'      If confirmdlg1.Exists then
+'        Call page.FindChild(Array("ObjectLabel","VisibleOnScreen"),Array("OK",True),30).Click
+'      End If
+        ''#################################################
+      Set pnlManageRepertoire = page.FindChild("idStr","ctl00_PLSMainContent_pnlManageRepertoire",30) 
+      Set table = pnlManageRepertoire.FindChild(Array("ObjectType","VisibleOnScreen"),Array("Table",True),15)
+      ''## Select the title by chekcbox click
+      Call table.Cell(1, 7).Checkbox("*CheckBoxID*").ClickChecked(True)
+      ''## Select action from dropdown for that title
+      Call page.FindChild("idStr","ctl00_PLSMainContent_tbLicenceExceptions_Button_1_dropdown",30).ClickItem("Return to default programme settings")
+      Call page.FindChild("idStr","ctl00_PLSMainContent_tbLicenceExceptions_Button_1",30).Click 
+      Call Delay(2000)
+      ''## confirm dialog ok button click
+      Set confirmdlg = page.FindChild(Array("className","VisibleOnScreen"),Array("ui-dialog ui-widget ui-widget-content*",True),15)
+      Call confirmdlg.FindChild(Array("contentText","ObjectType"),Array("Yes","Button"),30).Click
+      Call Delay(2000)
+      ''## alert dialog ok button click
+      Set alertdlg = page.FindChild(Array("className","VisibleOnScreen"),Array("ui-dialog ui-widget ui-widget-content*",True),15)
+      Call alertdlg.FindChild(Array("contentText","ObjectType"),Array("OK","Button"),30).Click
+    End Function
+ 
+    ''#########################################################################################
+    ''#################################### Function to Resets customized titles on FOC ################
+     Function reset_customised_Title_foc(browserVal,issn1)
+      Log.Message("Function reset_customised_Title_fpl")
+      Set browser = Sys.FindChild("ProcessName",browserVal,1)
+      Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),1)
+      ''# Scroll into view the panel to customise titles
+      Call Delay(1000)
+      Call page.FindChild("idStr","ctl00_PLSMainContent_lnkLicence",30).scrollIntoView(1)
+      ''## Click the search for individual titles tab
+      Call page.FindChild(Array("contentText","ObjectType","Width"),Array("Customised or Excluded Titles","Link","regexp:[^0]+"),30).Click
+      Call Delay(1000)
+      ''#####################################################
+      ''# Commented out below lines because the search functionality failed 
+'      ''## Search for issn value that was excluded from programme
+'      Call page.FindChild("idStr","ctl00_PLSMainContent_keywords",30).Keys(issn1)
+'      ''## Search button click
+'      Call page.FindChild("idStr","ctl00_PLSMainContent_btnSearchExceptionsKeywords",30).Click 
+'      Call Delay(2000)
+'      ''## confirm button on dialog window was clicked
+'      Set confirmdlg1 = page.FindChild(Array("ObjectLabel","VisibleOnScreen"),Array("OK",True),30)
+'      If confirmdlg1.Exists then
+'        Call page.FindChild(Array("ObjectLabel","VisibleOnScreen"),Array("OK",True),30).Click
+'      End If
+        ''#################################################
+      Set pnlManageRepertoire = page.FindChild("idStr","ctl00_PLSMainContent_pnlManageRepertoire",30) 
+      Set table = pnlManageRepertoire.FindChild(Array("ObjectType","VisibleOnScreen"),Array("Table",True),15)
+      ''## Select the title by chekcbox click
+      Call table.Cell(2, 7).FindChild("ObjectType","Checkbox",30).ClickChecked(True)
+      ''## Select action from dropdown for that title
+      Call page.FindChild("idStr","ctl00_PLSMainContent_tbLicenceExceptions_Button_1_dropdown",30).ClickItem("Return to default programme settings")
+      Call page.FindChild("idStr","ctl00_PLSMainContent_tbLicenceExceptions_Button_1",30).Click 
+      Call Delay(2000)
+      ''## confirm dialog ok button click
+      Set confirmdlg = page.FindChild(Array("className","VisibleOnScreen"),Array("ui-dialog ui-widget ui-widget-content*",True),15)
+      Call confirmdlg.FindChild(Array("contentText","ObjectType"),Array("Yes","Button"),30).Click
+      Call Delay(2000)
+      ''## alert dialog ok button click
+      Set alertdlg = page.FindChild(Array("className","VisibleOnScreen"),Array("ui-dialog ui-widget ui-widget-content*",True),15)
+      Call alertdlg.FindChild(Array("contentText","ObjectType"),Array("OK","Button"),30).Click
+    End Function
+ 

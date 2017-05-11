@@ -1,0 +1,77 @@
+﻿'USEUNIT LIBRARY
+'USEUNIT LIBRARY_REQUESTMANAGER
+'USEUNIT LIBRARY_TITLEMANAGER
+
+   ''## Description: Logins as a Request holder and cancels a request which is on Licensed status. Verifies the status after cancellation.
+
+
+ Sub STAT_tc1_CancelledStatus_RHcancelsLicence
+    Log.Message("TestCase - STAT_tc1_CancelledStatus_RHcancelsLicence")
+  ''*************************************************************************************  
+                                     ''## PARAMETERS
+  ''*************************************************************************************
+  ''##################################
+   excelPath = "C:\Users\C4T\Desktop\PLSclearDDT.xlsx"
+   excelRowVal = 45
+   Set objExcel = Sys.OleObject("Excel.Application")
+   objExcel.DisplayAlerts = 0
+   objExcel.Visible = True
+   objExcel.Workbooks.Open excelPath
+    ''## Rights Holder Login credentials
+   browserVal = GetDataFromExcel(excelPath,"Login",excelRowVal,1)
+   urlVal = GetDataFromExcel(excelPath,"Login",excelRowVal,2)
+   usernameVal = GetDataFromExcel(excelPath,"Login",excelRowVal,3)
+   passwordVal = GetDataFromExcel(excelPath,"Login",excelRowVal,4)
+   statusVal = "Licensed"
+  
+  ''####################  SCRIPT  ################################################################
+    ''## Launch the PLS clear in required browser
+    Call Launch_PLSclear(browserVal,urlVal)
+    Set browser = Sys.FindChild("ProcessName",browserVal,1)
+    Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),1)
+    ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    ''## Login as requestor
+    '# Close Additional dialogue (Do you want to leave this site?) that comes up when previous request session is to be aborted
+    Call ActionOnAlertDialog(browserVal,"Yes")
+    '# Login as Requestor. User login credentials should 'pass' the login, 'stop' value in the function stops the test run if login fails.
+    Call Login(browserVal,usernameVal,passwordVal,"pass","stop")
+    ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    ''## Navigate to Request Manager
+    Call NavigateToPage(browserVal,"Request Manager")
+    ''## Search for a Request which is on 'Licence issued' status, select it and Change to New status
+    Call SelectRequestByValue(browserVal,statusVal,tID)
+    '# Selects newstatusVal item from the status dropdown for that request
+    Call Delay(2000)
+    Set assisttaskstatus = page.FindChild("ObjectIdentifier","ddTaskStatus",30)
+    Call assisttaskstatus.scrollIntoView(1)
+    Call assisttaskstatus.ClickItem("Cancel")
+    Log.Message("The request status is updated to 'Cancel'")
+    Call Delay(1000)
+    Call page.FindChild(Array("ObjectIdentifier","Width"),Array("*txt*Comment*","regexp:[^0]+"),25).Keys(aqdatetime.Now & " test")
+    Set applybtn = page.FindChild(Array("ObjectType","value","Width"),Array("SubmitButton","Apply","regexp:[^0]+"),20)
+    Call applybtn.Click
+    Call delay(15000)
+    Set browser = Sys.FindChild("ProcessName",browserVal,1)
+    Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),1)
+    Set rmtable = page.FindChildByXPath("//table")
+    vRowIndex = rmtable.FindChild(Array("ColumnIndex","contentText"),Array("0",tID),3).RowIndex
+    '# After the status change, the log message displays the row to which the request is moved
+    Log.Message("ID "& tID &" was moved to Row " & vRowIndex &" after request was Cancelled")
+    statuscolumnId = rmtable.FindChildByXPath("//th[contains(.,'Status')]").ColumnIndex
+    Set vcell = rmtable.FindChild(Array("RowIndex","ColumnIndex"),Array(vRowIndex,statuscolumnId),3)
+    If InStr(vcell.outerHTML,"Cancelled") <> 0 then
+      Log.Checkpoint("'CancelledStatus_RHcancelsLicence' Passed Test. Cancelled status is shown for Request Id: "& tID)
+    Else
+      Log.Warning("CancelledStatus_RHcancelsLicence Failed Test. Cancelled status is NOT shown for Request Id: "& tID)
+      Log.Message(vcell.outerHTML)
+    End If
+    Log.Picture(rmtable)
+     '# Reset button is clicked after the test to reset the search results performed earlier to search
+    Set resetsearchbtn = page.FindChild("ObjectIdentifier","ButtonResetSearch",30)
+    Call resetsearchbtn.Click
+    ''# Close Excel instance
+    objExcel.Quit
+    Set objExcel = Nothing
+
+ End Sub
+   

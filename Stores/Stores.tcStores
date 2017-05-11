@@ -4,6 +4,9 @@
 		<child name="WebTesting" key="{34889013-01B4-42D9-AFF2-54D6D5D899E7}" type="Web Testing" typeId="{B205BEB2-E15D-463E-8F95-9AF50A3E8F46}" pluginName="Web Checkpoints">
 			<data path="WebTesting\WebTesting.tcWtc" />
 		</child>
+		<child name="Objects" key="{C31AD4BD-464D-437C-820E-96CE4A27FB35}" type="Objects" typeId="{30501691-969F-4007-923F-BA4459E51E6A}" pluginName="Stores">
+			<data path="Objects.tcObjects" />
+		</child>
 	</children>
 	<folders />
 </Root>

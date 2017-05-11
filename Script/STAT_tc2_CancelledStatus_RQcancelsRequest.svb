@@ -1,0 +1,135 @@
+﻿'USEUNIT Library
+'USEUNIT LIBRARY_REQUESTMANAGER
+'USEUNIT LIBRARY_TITLEMANAGER
+
+''## Description: Logins as a Requestor and cancels a request which can be on any status (eg., Pending). Verifies the status after cancellation.
+
+
+ Sub STAT_tc2_CancelledStatus_RQcancelsRequest
+     Log.Message("Test - STAT_tc2_CancelledStatus_RQcancelsRequest")
+   
+    ''################################## 
+   statusVal = "Pending"
+   newstatusVal = "Cancel"
+   excelPath = "C:\Users\C4T\Desktop\PLSclearDDT.xlsx"
+   excelRowVal = 46
+   Set objExcel = Sys.OleObject("Excel.Application")
+   objExcel.DisplayAlerts = 0
+   objExcel.Visible = True
+   objExcel.Workbooks.Open excelPath
+    ''## Rights Holder Login credentials
+   browserVal = GetDataFromExcel(excelPath,"Login",excelRowVal,1)
+   urlVal = GetDataFromExcel(excelPath,"Login",excelRowVal,2)
+    ''## Requestor Login credentials
+   usernameVal2 = GetDataFromExcel(excelPath,"Login",excelRowVal,5)
+   passwordVal2 = GetDataFromExcel(excelPath,"Login",excelRowVal,6)
+   ''# Search
+   searchtypeVal = GetDataFromExcel(excelPath,"Search",excelRowVal,1)
+   searchVal = GetDataFromExcel(excelPath,"Search",excelRowVal,2)
+   resultVal = GetDataFromExcel(excelPath,"Search",excelRowVal,3)
+   ''# Select Content
+   textextractVal = GetDataFromExcel (excelPath,"Select Content",excelRowVal,1)
+   poemVal = GetDataFromExcel(excelPath,"Select Content",excelRowVal,2)
+   illustrationVal = GetDataFromExcel(excelPath,"Select Content",excelRowVal,3)
+   tableVal = GetDataFromExcel(excelPath,"Select Content",excelRowVal,4)
+   articleVal = GetDataFromExcel(excelPath,"Select Content",excelRowVal,5)
+   ''# Details of Content
+   noofwordsVal = GetDataFromExcel(excelPath,"Details of Content",excelRowVal,1)
+   pagenoVal = GetDataFromExcel(excelPath,"Details of Content",excelRowVal,2)
+   nameofthepoemVal = GetDataFromExcel(excelPath,"Details of Content",excelRowVal,3)
+   reproductioncolourVal = GetDataFromExcel(excelPath,"Details of Content",excelRowVal,4)
+   reproductionsizeVal = GetDataFromExcel(excelPath,"Details of Content",excelRowVal,5)
+   figurenumber_titleVal  = GetDataFromExcel(excelPath,"Details of Content",excelRowVal,6)
+   pagenumberVal = GetDataFromExcel(excelPath,"Details of Content",excelRowVal,7)
+   pagerangeVal = GetDataFromExcel(excelPath,"Details of Content",excelRowVal,8)
+   issuedateVal = GetDataFromExcel(excelPath,"Details of Content",excelRowVal,9)
+   yearofpublicationVal = GetDataFromExcel(excelPath,"Details of Content",excelRowVal,10)
+   reuseprojectswitchVal = GetDataFromExcel(excelPath,"Details of Content",excelRowVal,11)
+   areyouauthorVal = GetDataFromExcel(excelPath,"Details of Content",excelRowVal,14)
+  '##  Select Planned Use 
+   selectplanneduseexcelsheet = "Select Planned Use" 
+  '## 'Details of Usage' (Mandatory parameters ONLY)
+   purposeVal = GetDataFromExcel(excelPath,"Details of Content",excelRowVal,12)
+   sectorVal = GetDataFromExcel(excelPath,"Details of Content",excelRowVal,13)
+   territoriesVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,6)
+   printrunVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,7)
+   retailpriceVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,8)
+   estimatedsalesVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,9)
+   estimatedCDsalesVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,10)
+   estimateddownloadsalesVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,11)
+   audiencerestrictedinanywayVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,12)
+   expectednumberofvisitorsVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,13)
+   circulationVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,14)
+   openaccessVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,15)
+   estimatednumberofticketsalesVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,16)
+   numberofslidesVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,17)
+   totalruntimeVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,18)
+   numberofusersVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,19)
+   formatVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,20)
+   methodofdistributionVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,21)
+   periodoftimeVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,22)
+   perioddownloadisactiveVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,23)
+   numberofstudentsusingVal = GetDataFromExcel(excelPath,"Select Planned Use",excelRowVal,24)
+  
+
+  ''####################  SCRIPT  ################################################################
+    ''## Launch the PLS clear in specified browser
+    Call Launch_PLSclear(browserVal,urlVal)
+    Set browser = Sys.FindChild("ProcessName",browserVal,1)
+    Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),1)
+    '# Close Additional dialogue (Do you want to leave this site?) that comes up when previous request session is to be aborted
+    Call ActionOnAlertDialog(browserVal,"Yes")
+    ''## Login as requestor
+    '# Login 
+    Call Login(browserVal,usernameVal2,passwordVal2,"pass","stop")
+    ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    Call Delay(1000)
+    '# Navigate to Request Manager
+    Call NavigateToPage(browserVal,"Request Manager")
+    ''## Selects a Request by specified status
+    Call SelectRequestByValue(browserVal,statusVal,tID)
+    '# Updates status value from the status dropdown for that request
+    Call Delay(3000)
+    Set assisttaskstatus = page.FindChild("ObjectIdentifier","ddTaskStatus",30)
+    Call assisttaskstatus.scrollIntoView(1)
+    Call assisttaskstatus.ClickItem("Cancel")
+    Log.Message("The request status is updated to 'Cancel'")
+    Call Delay(1000)
+    '# Adds comment after the status update
+    Call page.FindChild(Array("ObjectIdentifier","Width"),Array("*txt*Comment*","regexp:[^0]+"),25).Keys(aqdatetime.Now & " test")
+    Set applybtn = page.FindChild(Array("ObjectType","value","Width"),Array("SubmitButton","Apply","regexp:[^0]+"),20)
+    Call applybtn.Click
+    Call delay(7000)
+    '# Verify the Cancel status of the chosen request
+    Set browser = Sys.FindChild("ProcessName",browserVal,1)
+    Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),1)
+    '# Types the id of the request whose status was updated and clicks on search button. tID is the request id of the updated request
+    Set searchbar = page.FindChild(Array("ObjectIdentifier","ObjectType","Width"),Array("keywords","Textbox","regexp:[^0]+"),30)
+    Call searchbar.SetText(tID)
+    Set searchbtn = page.FindChild("className","button search internal",25)
+    Call searchbtn.Click
+    Call delay(2000)
+    Call page.Refresh
+    Set browser = Sys.FindChild("ProcessName",browserVal,1)
+    Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),1)
+    '## Code search in the RM table for the updated request and verifies its status
+    Set rmtable = page.FindChildByXPath("//table")
+    Set tcell = rmtable.FindChild(Array("ColumnIndex","contentText"),Array("0",tID))
+    trow = tcell.RowIndex
+    statuscolumnId = rmtable.FindChildByXPath("//th[contains(.,'Status')]").ColumnIndex
+    Set tstatuscell =  rmtable.FindChild(Array("RowIndex","ColumnIndex"),Array(trow,statuscolumnId),3)
+    If InStr(tstatuscell.outerHTML,"Cancelled") <> 0 then 
+      Log.Checkpoint("'CancelledStatus_RQcancelsRequest' Passed on RQ account: The request status for id "& tID &"is shown as 'Cancelled'")
+    Else
+      Log.Error("'CancelledStatus_RQcancelsRequest' Failed on RQ account: The request status is NOT shown as 'Cancelled'")
+    End If
+    Log.Picture(rmtable)
+    '# Reset button is clicked after the test to reset the search results performed earlier to search
+    Set resetsearchbtn = page.FindChild("ObjectIdentifier","ButtonResetSearch",30)
+    Call resetsearchbtn.Click
+    ''# Close Excel instance
+    objExcel.Quit
+    Set objExcel = Nothing
+   
+ End Sub
+   

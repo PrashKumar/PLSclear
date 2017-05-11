@@ -1,0 +1,166 @@
+﻿ 'USEUNIT LIBRARY
+ 'USEUNIT LIBRARY_REQUESTMANAGER
+ 'USEUNIT LIBRARY_TITLEMANAGER
+
+  ''###############################################################################################################################
+    ''############################################ Search the Request Manager table for a request with particular Status #############
+    '# the below function searches in the request manager navigating through each page, for a request with provided statusVal and 
+    ' then selects it
+    '# statusVal should be exactly the same as labelled for that status. It is case sensitive. Hoover over the icon to find the status icon labels
+   
+   Function SelectRequestByValue(browserVal,statusVal,tID)
+     '# excelPath is the value stored by the function based on request selected
+     Set browser = Sys.FindChild("ProcessName",browserVal,1)
+     Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),1)
+     Call Delay(2000)
+     Set rmtable = page.FindChildByXPath("//table")
+     Do 
+     If Not rmtable is nothing then
+       Exit Do
+     Else
+       Set rmtable = page.FindChildByXPath("//table")
+     End If
+     Loop
+     Do
+     If rmtable.Enabled then
+       Exit Do
+     Else
+       Set rmtable = page.FindChildByXPath("//table")
+     End If
+     Loop 
+     ''##### Navigates through pages to locate the title on required status
+     i = 1
+     Do
+       Set rmtable = page.FindChildByXPath("//table")
+       Set tcell = rmtable.FindChild(Array("outerHTML","ObjectType"),Array("*"& statusVal &"*","Cell"),3)
+       If tcell.Exists then
+         tcell.scrollIntoView(1)
+         '# If licensed request is found, gets the row index and clicks the cell to expand the request details
+         tRowIndex = tcell.RowIndex 
+         tID = rmtable.FindChild(Array("ColumnIndex","RowIndex"),Array("0",tRowIndex),3).contentText
+         Log.Message("Request Id " & tID &" is selected for test")
+         Call tcell.scrollIntoView(1)
+         Call Delay(1000)
+         Call tcell.Click 
+         Exit Do
+         Call Delay(3000) 
+       Else
+         Set browser = Sys.FindChild("ProcessName",browserVal,1)
+         Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),1)
+         Set paginglinks = page.FindChild("className","paging",20)
+         If paginglinks.Exists then
+           Set gotolastpagelink = paginglinks.FindChild("contentText",">>",10)
+           Set plink = paginglinks.FindChild("contentText",i,10)
+           If plink.Exists then
+             If plink.Enabled then
+               plink.Click
+             End If
+           ElseIf plink.Exists = False And gotolastpagelink.Exists = False then
+             Log.Warning("The "& statusVal &" status Not found in the RM table till the last page. Hence the test is aborted")
+             Call Runner.Stop
+             Exit Do
+           ElseIf gotolastpagelink.Exists then
+             gotolastpagelink.Click
+           End If
+           '# Loops if request is not found, clicks next page.
+           plink = paginglinks.EvaluateXPath("//A")
+           i = i + 1
+         Else
+           Log.Warning("The '"& statusVal &"' status is Not available for test in the Request Manager table. Hence this test cannot proceed further")
+            Call Runner.Stop
+           Exit Do
+         End If
+       End If
+     Loop 
+   End Function
+   ''###############################################################################################################################
+   '######################### Search the Request Manager table for a request with suing two properties (eg: status and Process) #######
+    '# propVal1 can be either status or title or process or ID of the request
+    '# propVal2 can be either status or title or process or ID of the request
+    Function SelectRequest_By_StatusAndProcess(browserVal,propVal1,propVal2,tID)
+    Set browser = Sys.FindChild("ProcessName",browserVal,1)
+    Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),10)
+    '# paginglinks are the buttons that enables navigation through pages
+    Set paginglinks = page.FindChild("className","paging",20)
+    plink = paginglinks.EvaluateXPath("//A")
+    For i = 0 to Ubound(plink) 
+      '# navigation through pages while page navigation buttons are enabled. 
+      If plink(i).Enabled then
+        plink(i).Click
+        Delay(1000)
+         plink = paginglinks.EvaluateXPath("//A")
+      End If
+      '# Search for a row that contains both required status and process and clicks on the title if found. If not found the condition is
+      'skipped and the page continues navigation to carry out further search
+      plink = paginglinks.EvaluateXPath("//A")
+      Set rmtable = page.FindChildByXPath("//table")
+      tcell1 = rmtable.FindAllChildren(Array("outerHTML","ObjectType","Visible"),Array("*"& propVal1 &"*","Cell",true),3)
+      For j = 0 to Ubound(tcell1)
+        Set tcell2 = rmtable.FindChild(Array("outerHTML","ObjectType","RowIndex"),Array("*"& propVal2 &"*","Cell",tcell1(j).RowIndex),3)
+        If tcell2.Exists then
+          tRowIndex = tcell1(j).RowIndex
+          tID = rmtable.FindChild(Array("ColumnIndex","RowIndex"),Array("0",tRowIndex),3).contentText
+          Call tcell2.scrollIntoView(1)
+          Call tcell2.Click
+          Log.Message(tcell2.contentText &" was clicked")
+          tID = rmtable.FindChild(Array("ColumnIndex","RowIndex"),Array("0",tcell1(j).RowIndex),3).contentText
+          Exit For
+        ElseIf tcell2.Exists = False And  i = Ubound(plink) And j = Ubound(tcell1) then
+          Log.Message(tcell1(j).RowIndex)
+          Log.Message("i value = "& i)
+          Log.Warning("Test could NOT proceed further as there exists no Pending request which is Automatic")
+         Exit For
+        End If 
+      Next
+      '# tRowIndex is the rowIndex that meets the above condition. If it is found the rowIndex will not be zero and the loop exits. If row
+      ' not found with above condition then tRowIndex is equals to zero and the above loop continues to run.
+      If tRowIndex <> 0 then
+        Exit For
+      End If
+    Set paginglinks = page.FindChild("className","paging",20)
+    plink = paginglinks.EvaluateXPath("//A")
+    Next
+  End Function
+  
+  ''############################################################################################################
+  ''############################################## Get Actual Quoted Value of the FPL Request ######################  
+    ''# The below script gets the application quoted price of the request which is on 'Quotation sent' status. It only gets _
+        '' the quotation value of the top row request as a fact that when a test is run to send thru request, the most recent request
+        '' sits on top row. No need to provide input value for 'actualquotationValue' as it is the get value stored by function.
+  Function Get_ActualQuotationPrice(browserVal,actualquotation)
+    Set browser = Sys.FindChild("ProcessName",browserVal,1)
+    Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),1) 
+    Set rmtable = page.FindChildByXPath("//table")
+    Do 
+      If rmtable.Exists then
+        Exit Do
+      Else
+        Set rmtable = page.FindChildByXPath("//table")
+      End If
+    Loop 
+    Call rmtable.WaitProperty("VisibleOnScreen",True,3000)
+    statuscolumnId = rmtable.FindChildByXPath("//th[contains(.,'Status')]").ColumnIndex
+    Call rmtable.Cell(1, statuscolumnId).Click
+    Call Delay(2000)
+    Set assisttaskstatus = page.FindChild("className","assistTaskStaus",25)
+    Do 
+      If assisttaskstatus.Exists then
+        Exit Do
+      Else
+        Set assisttaskstatus = page.FindChild("className","assistTaskStaus",25)
+      End If
+    Loop 
+    Call assisttaskstatus.WaitProperty("Visible",True,3000)
+    Call assisttaskstatus.scrollIntoView(1)
+    Call Delay(1000)
+    Call assisttaskstatus.ClickItem("Send a Quote")
+    Call Delay(500)
+    actualquotation = rmtable.Cell(2, 0).FindChild("ObjectIdentifier","txtQuotation",15).Text
+    Log.Message("Calculated quotation = '"& actualquotation &"'")
+    Call assisttaskstatus.scrollIntoView(1)
+    Call assisttaskstatus.ClickItem("Please select")
+  End Function
+  
+  ''#######################################################################################################
+  ''#######################################################################################################
+  

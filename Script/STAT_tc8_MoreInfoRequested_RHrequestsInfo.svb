@@ -1,0 +1,89 @@
+﻿'USEUNIT LIBRARY
+'USEUNIT LIBRARY_REQUESTMANAGER
+'USEUNIT LIBRARY_TITLEMANAGER
+
+''## Description: Logins as a Request holder and requests requestor for more info. Verifies the status of the request.
+
+Sub STAT_tc8_MoreInfoRequested_RHrequestsInfo
+   Log.Message("Test Case- STAT_tc8_MoreInfoRequested_RHrequestsInfo")
+   '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+   excelPath = "C:\Users\C4T\Desktop\PLSclearDDT.xlsx"
+   excelRowVal = 52
+   Set objExcel = Sys.OleObject("Excel.Application")
+   objExcel.DisplayAlerts = 0
+   objExcel.Visible = True
+   objExcel.Workbooks.Open excelPath
+   
+   browserVal = GetDataFromExcel(excelPath,"Login",excelRowVal,1)
+   urlVal = GetDataFromExcel(excelPath,"Login",excelRowVal,2)
+   ''## Rights Holder Login credentials
+   usernameVal = GetDataFromExcel(excelPath,"Login",excelRowVal,3)
+   passwordVal = GetDataFromExcel(excelPath,"Login",excelRowVal,4) 
+
+   ''####################  SCRIPT  ################################################################
+    ''## Launch the PLS clear in required browser
+    Call Launch_PLSclear(browserVal,urlVal)
+    Set browser = Sys.FindChild("ProcessName",browserVal,1)
+    Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),1)
+    ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    ''## Login as requestor
+    '# Close Additional dialogue (Do you want to leave this site?) that comes up when previous request session is to be aborted
+    Call ActionOnAlertDialog(browserVal,"Yes")
+    '# Login
+    Call Login(browserVal,usernameVal,passwordVal,"pass","stop")
+    ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    ''## Close any dialogues that appears on screen
+    Call ActionOnAlertDialog(browserVal,"Yes")
+    ''## Navigate to Request Manager
+    Call NavigateToPage(browserVal,"Request Manager")
+   ''## Search for a Request which is on 'Quotation sent' status
+    Call SelectRequestByValue(browserVal,"Pending",tID) 
+    Call Delay(3000)
+    Set assisttaskstatus = page.FindChild("ObjectIdentifier","ddTaskStatus",30)
+    Call assisttaskstatus.scrollIntoView(1)
+    Call assisttaskstatus.ClickItem("Ask for more information")
+    Call Delay(1000)
+    Call page.FindChild("ObjectIdentifier","txtMoreInformationComment",25).Keys("testing purpose")
+    Set applybtn = page.FindChild(Array("ObjectType","value","Width"),Array("SubmitButton","Apply","regexp:[^0]+"),30)
+    Call applybtn.Click
+    Call delay(5000)
+    Set browser = Sys.FindChild("ProcessName",browserVal,1)
+    Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),1)
+    Call PLS_Delay(browserVal,page)
+    Set rmtable = page.FindChildByXPath("//table")
+      Do 
+     If Not rmtable is nothing then
+       Exit Do
+     Else
+       Set rmtable = page.FindChildByXPath("//table")
+     End If
+     Loop
+     Do
+     If rmtable.Enabled then
+       Exit Do
+     Else
+       Set rmtable = page.FindChildByXPath("//table")
+     End If
+     Loop 
+    vRowIndex = rmtable.FindChild(Array("ColumnIndex","contentText"),Array("0",tID),3).RowIndex
+    Log.Message("ID "& tID &" has been moved to Row " & vRowIndex &" after More information was requested")
+    statuscolumnId = rmtable.FindChildByXPath("//th[contains(.,'Status')]").ColumnIndex
+    Set vcell = rmtable.FindChild(Array("RowIndex","ColumnIndex"),Array(vRowIndex,statuscolumnId),3)
+    If InStr(vcell.outerHTML,"Question sent to requestor") <> 0 then
+      Log.Checkpoint("'MoreInfoRequested_RHrequestsInfo' Passed Test. 'Question sent to requestor' status is shown for Request Id: "& tID)
+    Else
+      Log.Warning("'MoreInfoRequested_RHrequestsInfo' Failed Test. 'Question sent to requestor' status is NOT shown for Request Id: "& tID)
+      
+    End If
+    Log.Picture(rmtable)
+
+    '# Reset button is clicked after the test to reset the search results performed earlier to search
+    Set resetsearchbtn = page.FindChild("ObjectIdentifier","ButtonResetSearch",30)
+    Call resetsearchbtn.Click
+    ''# Close Excel instance
+    objExcel.Quit
+    Set objExcel = Nothing
+    
+End Sub
+
+

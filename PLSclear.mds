@@ -27,13 +27,31 @@
 	</folders>
 	<config language="{897793E3-73F3-4895-A956-3D41D3A24A45}" />
 	<testItems key="{BDF4635D-3B2B-473B-BCC1-6D8B25C32C90}">
-		<children />
+		<children>
+			<testItem name="All Tests" key="{E6741C34-01EE-4A26-AAF1-73A8015CC9AA}" group="False" enabled="True" testMoniker="" count="1" timeout="0" stopOnError="2" stopOnException="2" description="">
+				<testParameters />
+				<children>
+					<testItem name="LoginTests" key="{6108633B-CD26-4A9A-9EAB-E5BCF8C9A1FC}" group="False" enabled="True" testMoniker="{85FADD4F-DA00-4B9A-8067-105067DFAD95}Login_Tests" count="1" timeout="0" stopOnError="2" stopOnException="2" description="">
+						<testParameters />
+						<children />
+					</testItem>
+					<testItem name="RequestWizardTest" key="{A1E34662-7BBD-4AFA-A70A-CC372E99665B}" group="False" enabled="True" testMoniker="{3CB2D8F0-EBAE-4B17-B3CB-158EE3DCC838}Request_wizard_Test" count="1" timeout="0" stopOnError="2" stopOnException="2" description="">
+						<testParameters />
+						<children />
+					</testItem>
+					<testItem name="BatchStatusTests" key="{52758E2B-BB59-48F1-966C-A84E11ED6187}" group="False" enabled="True" testMoniker="{BA556B8B-E952-48C6-8D99-B07894EE60C5}Batch_StatusTests" count="1" timeout="0" stopOnError="2" stopOnException="2" description="">
+						<testParameters />
+						<children />
+					</testItem>
+				</children>
+			</testItem>
+		</children>
 	</testItems>
 	<variables key="{2DB312C5-A24D-458F-A5BA-9435B3041932}">
 		<data Version="3" />
 	</variables>
 	<settings key="{D232BA31-0E91-4DF6-9B38-ABBF255D66D6}">
-		<settingsVersion value="12.10" />
+		<settingsVersion value="12.20" />
 		<setting name="{42651A7C-4287-4C91-AE26-98CBD2EA9355}" type="1" value="False" />
 		<setting name="{A2568CC8-7E8E-42C5-A87D-B69684A1E616}" type="1" value="True" />
 		<setting name="{3EADAFE2-0CD4-4B1E-A2A9-B184E94FDCC7}" type="6" rowIndex="1" colIndex="0">
@@ -99,11 +117,11 @@
 				<row val0="Desktop" />
 			</data>
 		</setting>
-		<setting name="{0DEF6033-13D4-4335-97E9-CC6F1FC04342}" type="1" value="True" />
+		<setting name="{0DEF6033-13D4-4335-97E9-CC6F1FC04342}" type="1" value="False" />
 		<setting name="{DF56DCEA-130B-4D36-8893-5FDC090AFB17}" type="1" value="False" />
 		<setting name="{829BC6CA-56D1-46A4-89B9-E15802964005}" type="1" value="False" />
 		<setting name="{85CD048A-29FF-4ABF-95A6-B915AEA2C10D}" type="1" value="False" />
-		<setting name="{2044DC7F-423E-4668-8114-68D23AE97AD6}" type="2" value="0" />
+		<setting name="{2044DC7F-423E-4668-8114-68D23AE97AD6}" type="2" value="500" />
 		<setting name="Recording_TestedAppsOnly" type="1" value="False" />
 		<setting name="{FB1CAF99-7FA6-447C-B963-D862CA8BFF89}" type="2" value="3000" />
 		<setting name="{3B76535B-58AD-456C-837E-091A5C480F6C}" type="1" value="True" />
@@ -143,7 +161,7 @@
 				<row val0="Flat" />
 			</data>
 		</setting>
-		<setting name="{F7C29680-06BB-4F85-B0E3-C06AE2282A66}" type="1" value="True" />
+		<setting name="{F7C29680-06BB-4F85-B0E3-C06AE2282A66}" type="1" value="False" />
 		<setting name="{0BD6AE2E-E5D9-4AD0-9BF3-2483D329B22A}" type="1" value="True" />
 		<setting name="{3FC2A7B4-F4AF-4807-8D37-C3EE096DD330}" type="2" value="1024" />
 		<setting name="{9EB8E8E6-D2F2-4A8A-ADFB-492E8C0EAFEF}" type="2" value="10000" />
@@ -177,7 +195,7 @@
 			</data>
 		</setting>
 		<setting name="{15C8845F-53E4-4045-9800-74766ABC4B34}" type="2" value="0" />
-		<setting name="{18FD096E-E6B8-4D3D-9619-71670FC81D48}" type="1" value="False" />
+		<setting name="{18FD096E-E6B8-4D3D-9619-71670FC81D48}" type="1" value="True" />
 		<setting name="{7A4EE551-25FE-4C1A-8967-FA26B3C27AD7}" type="6" rowIndex="11" colIndex="9">
 			<columns>
 				<column type="2" enabled="True" />
@@ -218,7 +236,7 @@
 			</columns>
 			<data />
 		</setting>
-		<setting name="{A892B59C-EC27-4ABB-8305-4F885C9BC8CA}" type="6" rowIndex="1" colIndex="0">
+		<setting name="{A892B59C-EC27-4ABB-8305-4F885C9BC8CA}" type="6" rowIndex="0" colIndex="0">
 			<columns>
 				<column type="5" enabled="True" />
 			</columns>
@@ -227,6 +245,7 @@
 				<row val0="Breadth-first" />
 			</data>
 		</setting>
+		<setting name="{24DB98D6-5EF8-47BF-977E-C2FD2C5F5FB3}" type="5" value="Log" />
 		<setting name="{3BAA9083-AE46-48CE-BFF4-A656DECF8E2F}" type="1" value="False" />
 		<setting name="{3E8BAA4F-EA09-4DD1-BD8E-DA765C8CF39B}" type="1" value="False" />
 		<setting name="{BE6D588C-BDC7-42E0-8BAE-3E3D8B0F7E83}" type="1" value="True" />
@@ -242,7 +261,7 @@
 		</setting>
 		<setting name="{74CC9F3B-2E52-4B16-844A-9EE33532B51E}" type="1" value="False" />
 		<setting name="{BF9B6482-CEA1-4402-BA61-9702404F1F12}" type="1" value="True" />
-		<setting name="{C3267834-69E4-4CD8-B16A-B60A9BB8A3B4}" type="1" value="False" />
+		<setting name="{C3267834-69E4-4CD8-B16A-B60A9BB8A3B4}" type="1" value="True" />
 		<setting name="{1398B0BE-92B7-4650-A467-751B8FAAB738}" type="6" rowIndex="0" colIndex="0">
 			<columns>
 				<column type="5" enabled="True" />
@@ -258,7 +277,7 @@
 			</columns>
 			<data />
 		</setting>
-		<setting name="ApplicationHangingProcessFilterMode" type="6" rowIndex="0" colIndex="0">
+		<setting name="ApplicationHangingProcessFilterMode" type="6" rowIndex="1" colIndex="0">
 			<columns>
 				<column type="5" enabled="True" />
 			</columns>
@@ -270,7 +289,7 @@
 				<row val0="Ignore all processes" />
 			</data>
 		</setting>
-		<setting name="{3A4F97B3-D3D3-41E5-BE37-C419B02D488A}" type="6" rowIndex="-1" colIndex="0">
+		<setting name="{3A4F97B3-D3D3-41E5-BE37-C419B02D488A}" type="6" rowIndex="0" colIndex="0">
 			<columns>
 				<column type="5" enabled="True" />
 				<column type="5" enabled="True" />
@@ -279,11 +298,13 @@
 				<column type="5" enabled="True" />
 				<column type="1" enabled="True" />
 			</columns>
-			<data />
+			<data>
+				<row val0="CLA-1238-PC" val1="% Memory [CLA-1238-PC]" val2="6712167" val3="1" val4="Memory %" val5="False" />
+			</data>
 		</setting>
 		<setting name="ApplicationHangingTimeout" type="2" value="30000" />
 		<setting name="{C371F52C-2F81-459B-8A40-380AAA4FB590}" type="1" value="True" />
-		<setting name="{EF65967B-5D67-41D0-9E90-1E07D7ECE759}" type="6" rowIndex="3" colIndex="0">
+		<setting name="{EF65967B-5D67-41D0-9E90-1E07D7ECE759}" type="6" rowIndex="4" colIndex="0">
 			<columns>
 				<column type="5" enabled="True" />
 			</columns>
@@ -291,13 +312,11 @@
 				<row val0="NativeWebObject" />
 				<row val0="NativeChromeObject" />
 				<row val0="NativeMSAA" />
-				<row val0="NativeSlObject" />
 				<row val0="NativeFirefoxObject" />
 				<row val0="NativeSafariObject" />
-				<row val0="NativeOperaObject" />
 			</data>
 		</setting>
-		<setting name="KeyPressingDelay" type="2" value="0" />
+		<setting name="KeyPressingDelay" type="2" value="100" />
 		<setting name="{5B70169C-3929-4B5F-BC46-0FD984BECF45}" type="1" value="True" />
 		<setting name="{AE3F26D8-A5BD-4172-9F50-F2B9D1D03611}" type="1" value="True" />
 		<setting name="{890C6D5A-4706-498E-A6EA-CA765851BB97}" type="6" rowIndex="0" colIndex="0">
@@ -314,7 +333,7 @@
 		<setting name="{E5242A20-9B70-4540-AEFD-7012791D3284}" type="1" value="True" />
 		<setting name="{D80391D4-892F-4CEC-865E-B7FACB3FAC84}" type="2" value="10" />
 		<setting name="MouseMovementDelay" type="2" value="0" />
-		<setting name="{A383BA1A-68CF-40AE-9FCD-B3E554E9ADD7}" type="6" rowIndex="0" colIndex="0">
+		<setting name="{A383BA1A-68CF-40AE-9FCD-B3E554E9ADD7}" type="6" rowIndex="1" colIndex="0">
 			<columns>
 				<column type="5" enabled="True" />
 			</columns>
@@ -324,7 +343,6 @@
 			</data>
 		</setting>
 		<setting name="{BC2725AB-C90D-4761-BEB2-ABACE30FE554}" type="1" value="True" />
-		<setting name="AgOpenApp_ExtendedSilverlightObjectTree" type="1" value="True" />
 		<setting name="{0787AA13-4C49-418A-A688-B23BE9F226F4}" type="1" value="False" />
 		<setting name="{DB42CEAB-BFC4-40DB-9F48-9197D35FB5E2}" type="6" rowIndex="30" colIndex="4">
 			<columns>
