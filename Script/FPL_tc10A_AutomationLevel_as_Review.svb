@@ -371,13 +371,13 @@
       ''###############################################################################
       ''## Reset the programme to default settings
       ''###############################################################################
-'      
-'      folder3 = Log.CreateFolder("Below actions are to Reset the Programme to default settings")
-'      Log.PushLogFolder(folder3)
-'      ''## Reset the programme to default programme settings.
-'      autolevelValFPL = GetDataFromExcel(excelPath,"FPL Default",82,4)
-'      Call Set_Bulk_FPL_programme(browserVal,fplparam_Arr)
-'      Log.PopLogFolder()
+      
+      folder3 = Log.CreateFolder("Below actions are to Reset the Programme to default settings")
+      Log.PushLogFolder(folder3)
+      ''## Reset the programme to default programme settings.
+      autolevelValFPL = GetDataFromExcel(excelPath,"FPL Default",82,4)
+      Call Set_Bulk_FPL_programme(browserVal,fplparam_Arr)
+      Log.PopLogFolder()
       ''# Close Excel instance
       objExcel.Quit
       Set objExcel = Nothing

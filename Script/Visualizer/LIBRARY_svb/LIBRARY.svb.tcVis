@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Root signature="{42D2222C-ACA2-405F-8E67-05D5C42EB839}" version="2">
+	<data key="{9CF6B802-BCBF-4458-9E6F-443C5E285160}">
+		<item typeId="{87B03792-E854-4F5D-9F33-165F1F874209}" version="2" lineNo="1063" kind="0" dateTime="42865.6396540162" objectName="Aliases.browser.Page(&quot;https://uat2.plsclear.com/pages/clearWizard.aspx&quot;).Form(&quot;aspnetForm&quot;).Panel(&quot;canvas&quot;).Panel(&quot;page&quot;).Panel(&quot;innerContentContainer&quot;).Panel(&quot;wizardContainer&quot;).Panel(&quot;wizard&quot;).Panel(1).Panel(&quot;step_4&quot;).Panel(&quot;questions&quot;).Panel(&quot;accordion&quot;).Panel(&quot;parent1_1_1&quot;).Panel(&quot;categoryId_1_1_1_1&quot;).Panel(0).Form(&quot;form_1_1_1_1&quot;).Panel(0).Panel(6).Panel(1).Textbox(&quot;price&quot;)" objectLeft="830" objectTop="697" objectRight="1006" objectBottom="721" clickPointX="-1" clickPointY="-1" imageFileName="visImage70.png" storageFileName="" needUpdate="False" rectColor="255" />
+	</data>
+</Root>

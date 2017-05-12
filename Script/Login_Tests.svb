@@ -6,7 +6,7 @@
 Sub Login_Tests
    Log.Message ("TestCase - Login_Tests")
   browserVal = "chrome"
-  urlVal = "https://uat.plsclear.com"
+  urlVal = "uat2.plsclear.com"
   '# 1. Valid credentials (should Allow login)
   usernameVal1 = "mwagner"
   passwordVal1 = "pinter629"

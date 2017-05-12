@@ -283,7 +283,7 @@
      ''###################################################################################################
       
       ''## Launch the PLS clear in required browser
-'      Call Launch_PLSclear(browserVal,urlVal)
+      Call Launch_PLSclear(browserVal,urlVal)
       Set browser = Sys.FindChild("ProcessName",browserVal,1)
       Set page = browser.FindChild(Array("URL","Visible"),Array("*pls*",True),2) 
       '# Close Additional dialogue
@@ -363,46 +363,46 @@
       ''## Reset the programme to default settings
       ''###############################################################################
       
-'      folder3 = Log.CreateFolder("Below actions are to Reset the Programme to default settings")
-'      Log.PushLogFolder(folder3)
-'      ''## Reset the programme to default programme settings.
-'     ''# Sector
-'     pricebysectorcheckboxVal = GetDataFromExcel(excelPath,"FPL Default",42,4)
-'     useonepriceforallsectorsVal = GetDataFromExcel(excelPath,"FPL Default",43,4)
-'     setindividualpricespersectorVal = GetDataFromExcel(excelPath,"FPL Default",44,4) 
-'     ' All
-'     sectorwordsVal = GetDataFromExcel(excelPath,"FPL Default",46,4) 
-'     sectorwordsreviewcheckboxVal = GetDataFromExcel(excelPath,"FPL Default",46,5) 
-'     sectortableVal = GetDataFromExcel(excelPath,"FPL Default",46,6) 
-'     sectortablereviewcheckboxVal = GetDataFromExcel(excelPath,"FPL Default",46,7) 
-'     sectorimageVal = GetDataFromExcel(excelPath,"FPL Default",46,8) 
-'     sectorimagereviewcheckboxVal = GetDataFromExcel(excelPath,"FPL Default",46,9) 
-'     ''# Purpose
-'     pricebypurposecheckboxVal = GetDataFromExcel(excelPath,"FPL Default",53,4) 
-'     useonepriceforallpurposeVal = GetDataFromExcel(excelPath,"FPL Default",54,4)
-'     setindividualpricesperpurposeVal = GetDataFromExcel(excelPath,"FPL Default",55,4) 
-'     '#All
-'     purposewordsVal = GetDataFromExcel(excelPath,"FPL Default",57,4) 
-'     purposewordsreviewcheckboxVal = GetDataFromExcel(excelPath,"FPL Default",57,5) 
-'     purposetableVal = GetDataFromExcel(excelPath,"FPL Default",57,6) 
-'     purposetablereviewcheckboxVal = GetDataFromExcel(excelPath,"FPL Default",57,7) 
-'     purposeimageVal = GetDataFromExcel(excelPath,"FPL Default",57,8) 
-'     purposeimagereviewcheckboxVal = GetDataFromExcel(excelPath,"FPL Default",57,9) 
-'
-'    ''# CIRCULATION
-'     pricebycirculationcheckboxVal = GetDataFromExcel(excelPath,"FPL Default",62,4) 
-'     useonepriceforallcirculationVal = GetDataFromExcel(excelPath,"FPL Default",63,4)
-'     setindividualpricespercirculationVal = GetDataFromExcel(excelPath,"FPL Default",64,4) 
-'    '# All
-'     circulationwordsVal = GetDataFromExcel(excelPath,"FPL Default",66,4) 
-'     circulationwordsreviewcheckboxVal = GetDataFromExcel(excelPath,"FPL Default",66,5) 
-'     circulationtableVal = GetDataFromExcel(excelPath,"FPL Default",66,6) 
-'     circulationtablereviewcheckboxVal = GetDataFromExcel(excelPath,"FPL Default",66,7)  
-'     circulationimageVal = GetDataFromExcel(excelPath,"FPL Default",66,8)
-'     circulationimagereviewcheckboxVal = GetDataFromExcel(excelPath,"FPL Default",66,9)
-'     
-'      Call Set_Bulk_FPL_programme(browserVal,fplparam_Arr)
-'      Log.PopLogFolder()
+      folder3 = Log.CreateFolder("Below actions are to Reset the Programme to default settings")
+      Log.PushLogFolder(folder3)
+      ''## Reset the programme to default programme settings.
+     ''# Sector
+     pricebysectorcheckboxVal = GetDataFromExcel(excelPath,"FPL Default",42,4)
+     useonepriceforallsectorsVal = GetDataFromExcel(excelPath,"FPL Default",43,4)
+     setindividualpricespersectorVal = GetDataFromExcel(excelPath,"FPL Default",44,4) 
+     ' All
+     sectorwordsVal = GetDataFromExcel(excelPath,"FPL Default",46,4) 
+     sectorwordsreviewcheckboxVal = GetDataFromExcel(excelPath,"FPL Default",46,5) 
+     sectortableVal = GetDataFromExcel(excelPath,"FPL Default",46,6) 
+     sectortablereviewcheckboxVal = GetDataFromExcel(excelPath,"FPL Default",46,7) 
+     sectorimageVal = GetDataFromExcel(excelPath,"FPL Default",46,8) 
+     sectorimagereviewcheckboxVal = GetDataFromExcel(excelPath,"FPL Default",46,9) 
+     ''# Purpose
+     pricebypurposecheckboxVal = GetDataFromExcel(excelPath,"FPL Default",53,4) 
+     useonepriceforallpurposeVal = GetDataFromExcel(excelPath,"FPL Default",54,4)
+     setindividualpricesperpurposeVal = GetDataFromExcel(excelPath,"FPL Default",55,4) 
+     '#All
+     purposewordsVal = GetDataFromExcel(excelPath,"FPL Default",57,4) 
+     purposewordsreviewcheckboxVal = GetDataFromExcel(excelPath,"FPL Default",57,5) 
+     purposetableVal = GetDataFromExcel(excelPath,"FPL Default",57,6) 
+     purposetablereviewcheckboxVal = GetDataFromExcel(excelPath,"FPL Default",57,7) 
+     purposeimageVal = GetDataFromExcel(excelPath,"FPL Default",57,8) 
+     purposeimagereviewcheckboxVal = GetDataFromExcel(excelPath,"FPL Default",57,9) 
+
+    ''# CIRCULATION
+     pricebycirculationcheckboxVal = GetDataFromExcel(excelPath,"FPL Default",62,4) 
+     useonepriceforallcirculationVal = GetDataFromExcel(excelPath,"FPL Default",63,4)
+     setindividualpricespercirculationVal = GetDataFromExcel(excelPath,"FPL Default",64,4) 
+    '# All
+     circulationwordsVal = GetDataFromExcel(excelPath,"FPL Default",66,4) 
+     circulationwordsreviewcheckboxVal = GetDataFromExcel(excelPath,"FPL Default",66,5) 
+     circulationtableVal = GetDataFromExcel(excelPath,"FPL Default",66,6) 
+     circulationtablereviewcheckboxVal = GetDataFromExcel(excelPath,"FPL Default",66,7)  
+     circulationimageVal = GetDataFromExcel(excelPath,"FPL Default",66,8)
+     circulationimagereviewcheckboxVal = GetDataFromExcel(excelPath,"FPL Default",66,9)
+     
+      Call Set_Bulk_FPL_programme(browserVal,fplparam_Arr)
+      Log.PopLogFolder()
       ''# Close Excel instance
       objExcel.Quit
       Set objExcel = Nothing

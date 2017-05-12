@@ -99,13 +99,13 @@
           Log.Message("Test continued as the stoponfailVal is set to 'proceed'")
         End If
       Else
-        Log.Checkpoint("Login Sucessful with USERNAME = "& usernameVal &", PASSWORD = "& passwordVal&". Error Not Shown")
+        Log.Checkpoint("Login with USERNAME = "& usernameVal &", PASSWORD = "& passwordVal&". Error Not Shown")
       End If
     ElseIf expectedresultVal = "fail" then
       If  validationerror.Exists = False then
         Log.Warning("Login Test Failed for USERNAME: "& usernameVal &", PASSWORD: "& passwordVal&". Error Not Shown")
       Else
-        Log.Checkpoint("Login Succesful with USERNAME: "& usernameVal &", PASSWORD: "& passwordVal&". Error Shown")
+        Log.Checkpoint("Login with USERNAME: "& usernameVal &", PASSWORD: "& passwordVal&". Error Shown")
       End If
     End If
     Log.PopLogFolder()

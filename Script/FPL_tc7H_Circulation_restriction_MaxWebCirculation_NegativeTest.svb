@@ -372,16 +372,16 @@
       ''## Reset the programme to default settings
       ''###############################################################################
       
-'      folder3 = Log.CreateFolder("Below actions are to Reset the Programme to default settings")
-'      Log.PushLogFolder(folder3)
-'      ''## Reset the programme to default programme settings.
-'      circulationrestrictionsVal = GetDataFromExcel(excelPath,"FPL Default",28,4)
-'      maxtotalcirculationVal = GetDataFromExcel(excelPath,"FPL Default",29,4)
-'      maxprintcirculationVal = GetDataFromExcel(excelPath,"FPL Default",30,4)
-'      maxebookcirculationVal = GetDataFromExcel(excelPath,"FPL Default",31,4)
-'      maxwebcirculationVal = GetDataFromExcel(excelPath,"FPL Default",32,4)
-'      Call Set_Bulk_FPL_programme(browserVal,fplparam_Arr)
-'      Log.PopLogFolder()
+      folder3 = Log.CreateFolder("Below actions are to Reset the Programme to default settings")
+      Log.PushLogFolder(folder3)
+      ''## Reset the programme to default programme settings.
+      circulationrestrictionsVal = GetDataFromExcel(excelPath,"FPL Default",28,4)
+      maxtotalcirculationVal = GetDataFromExcel(excelPath,"FPL Default",29,4)
+      maxprintcirculationVal = GetDataFromExcel(excelPath,"FPL Default",30,4)
+      maxebookcirculationVal = GetDataFromExcel(excelPath,"FPL Default",31,4)
+      maxwebcirculationVal = GetDataFromExcel(excelPath,"FPL Default",32,4)
+      Call Set_Bulk_FPL_programme(browserVal,fplparam_Arr)
+      Log.PopLogFolder()
       ''# Close Excel instance
       objExcel.Quit
       Set objExcel = Nothing
